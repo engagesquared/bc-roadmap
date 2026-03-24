@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Timeline } from "./components/Timeline";
-import { ReleaseDetailModal } from "./components/ReleaseDetailModal";
-import { SearchModal } from "./components/SearchModal";
 import { roadmapData } from "./data/roadmap";
 import logo from "./assets/brief-connect-logo.svg";
+
+const ReleaseDetailModal = lazy(async () => {
+  const module = await import("./components/ReleaseDetailModal");
+  return { default: module.ReleaseDetailModal };
+});
+
+const SearchModal = lazy(async () => {
+  const module = await import("./components/SearchModal");
+  return { default: module.SearchModal };
+});
 
 interface HashSelection {
   releaseId: string;
@@ -143,26 +151,28 @@ export default function App() {
         />
       </div>
 
-      <ReleaseDetailModal
-        release={selectedRelease}
-        selectedFeatureIndex={selectedFeatureIndex}
-        permalink={permalink}
-        shareHref={shareHref}
-        onFeatureSelect={(featureIndex) => {
-          if (!selectedRelease) return;
-          handleFeatureClick(selectedRelease.id, featureIndex);
-        }}
-        onBackToRelease={() => setSelectedFeatureIndex(null)}
-        onClose={handleCloseRelease}
-      />
+      <Suspense fallback={null}>
+        <ReleaseDetailModal
+          release={selectedRelease}
+          selectedFeatureIndex={selectedFeatureIndex}
+          permalink={permalink}
+          shareHref={shareHref}
+          onFeatureSelect={(featureIndex) => {
+            if (!selectedRelease) return;
+            handleFeatureClick(selectedRelease.id, featureIndex);
+          }}
+          onBackToRelease={() => setSelectedFeatureIndex(null)}
+          onClose={handleCloseRelease}
+        />
 
-      <SearchModal
-        releases={roadmapData}
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelectRelease={handleReleaseClick}
-        onSelectFeature={handleFeatureClick}
-      />
+        <SearchModal
+          releases={roadmapData}
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          onSelectRelease={handleReleaseClick}
+          onSelectFeature={handleFeatureClick}
+        />
+      </Suspense>
     </div>
   );
 }

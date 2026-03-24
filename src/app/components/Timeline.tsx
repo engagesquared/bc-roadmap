@@ -12,6 +12,7 @@ const SCROLL_CONTENT_WIDTH = START_PADDING + TIMELINE_LENGTH + END_PADDING;
 const TIMELINE_LINE_LEFT = START_PADDING - TIMELINE_LINE_INSET;
 const TIMELINE_LINE_WIDTH = TIMELINE_LENGTH + TIMELINE_LINE_INSET * 2;
 const OVERLAP_THRESHOLD = 290;
+const TODAY_LABEL_HEIGHT = 20;
 
 function getStartOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -78,6 +79,9 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
   };
 
   const placements = computePlacements(sortedReleases, getTimelinePosition);
+  const today = new Date();
+  const todayMarkerPosition = getTimelinePosition(today);
+  const showTodayMarker = today >= timelineStartDate && today <= timelineEndDate;
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -236,6 +240,18 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
             className="absolute bg-[#2E7FE5] rounded-full shadow-sm"
             style={{ left: `${TIMELINE_LINE_LEFT}px`, width: `${TIMELINE_LINE_WIDTH}px`, height: "2px", top: `${TIMELINE_Y}px` }}
           />
+
+          {showTodayMarker && (
+            <div
+              className="absolute flex flex-col items-center pointer-events-none"
+              style={{ left: `${todayMarkerPosition}px`, top: `${TIMELINE_Y - 48 - TODAY_LABEL_HEIGHT}px`, transform: "translateX(-50%)" }}
+            >
+              <div className="text-[10px] font-medium uppercase tracking-[0.08em] text-gray-400 mb-1">
+                Today
+              </div>
+              <div className="w-px bg-gray-300" style={{ height: `${48 + 48}px` }} />
+            </div>
+          )}
 
           {generateMonthMarkers()}
 

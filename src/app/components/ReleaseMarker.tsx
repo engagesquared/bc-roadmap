@@ -25,6 +25,7 @@ export const ReleaseMarker = forwardRef<HTMLDivElement, ReleaseMarkerProps>(
     const visibleFeatures = release.features.slice(0, MAX_VISIBLE_FEATURES);
     const hiddenFeatureCount = release.features.length - visibleFeatures.length;
     const isAbove = placement === "above";
+    const isReleased = release.released;
 
     const stemStyle = isAbove
       ? {
@@ -107,6 +108,11 @@ export const ReleaseMarker = forwardRef<HTMLDivElement, ReleaseMarkerProps>(
         >
           <div className={`flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide mb-1 transition-colors duration-300 ${isSelected ? "text-white/70" : "text-[#5E6678]"}`}>
             <span className="shrink-0">{month} {year}</span>
+            {isReleased && (
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] tracking-normal transition-colors duration-300 ${isSelected ? "bg-emerald-400/20 text-white" : "bg-emerald-50 text-emerald-700"}`}>
+                Released
+              </span>
+            )}
             {release.consultationPeriod && (
               <span className={`truncate rounded-full px-2 py-0.5 text-[10px] tracking-normal transition-colors duration-300 ${isSelected ? "bg-white/15 text-white/80" : "bg-[#2E7FE5]/8 text-[#1E4FD8]"}`}>
                 Consult: {release.consultationPeriod}
@@ -122,7 +128,7 @@ export const ReleaseMarker = forwardRef<HTMLDivElement, ReleaseMarkerProps>(
           <div className={`text-xs leading-relaxed transition-colors duration-300 ${isSelected ? "text-white/80" : "text-[#5E6678]"}`}>
             {release.summary}
           </div>
-          {release.features.length > 0 ? (
+          {release.features.length > 0 && (
             <div className={`mt-4 pt-3 border-t transition-colors duration-300 ${isSelected ? "border-white/20" : "border-gray-200"}`}>
               <div className={`mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors duration-300 ${isSelected ? "text-white/75" : "text-[#5E6678]"}`}>
                 Key features
@@ -147,12 +153,6 @@ export const ReleaseMarker = forwardRef<HTMLDivElement, ReleaseMarkerProps>(
                     + {hiddenFeatureCount} more
                   </div>
                 )}
-              </div>
-            </div>
-          ) : (
-            <div className={`flex items-center gap-1.5 mt-3 pt-3 border-t transition-colors duration-300 ${isSelected ? "border-white/20" : "border-gray-200"}`}>
-              <div className={`text-xs font-medium transition-colors duration-300 ${isSelected ? "text-white/90" : "text-[#5E6678]"}`}>
-                0 features
               </div>
             </div>
           )}

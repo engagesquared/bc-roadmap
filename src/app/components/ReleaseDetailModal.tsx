@@ -1,6 +1,6 @@
 import type { Release } from "../data/roadmap";
 import ReactMarkdown from "react-markdown";
-import { ArrowLeft, CalendarDays, MessageSquareMore, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, MessageSquareMore, Rocket, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ModalShareActions } from "./ModalShareActions";
 
@@ -27,6 +27,11 @@ export function ReleaseDetailModal({
 
   const selectedFeature =
     selectedFeatureIndex !== null ? release.features[selectedFeatureIndex] ?? null : null;
+  const releaseDateLabel = release.estimatedDate.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
     <AnimatePresence>
@@ -56,11 +61,7 @@ export function ReleaseDetailModal({
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-[#5E6678] rounded-lg text-sm font-medium">
                   <CalendarDays className="w-4 h-4" />
-                  {release.estimatedDate.toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {releaseDateLabel}
                 </div>
               </div>
               <h2 className="text-2xl font-semibold text-[#1A1A1A] mt-2">
@@ -83,9 +84,26 @@ export function ReleaseDetailModal({
                     Consultation period: {release.consultationPeriod}
                   </div>
                 )}
+                {release.released && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium">
+                    <Rocket className="w-4 h-4" />
+                    Released
+                  </div>
+                )}
                 <div className="px-3 py-1.5 bg-gray-100 text-[#5E6678] rounded-lg text-sm font-medium">
-                  Anticipated release: {release.anticipatedRelease}
+                  {release.released ? "Roadmap slot" : "Anticipated release"}: {release.anticipatedRelease}
                 </div>
+                {release.releaseNotesUrl && (
+                  <a
+                    href={release.releaseNotesUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#2E7FE5]/10 text-[#1E4FD8] rounded-lg text-sm font-medium hover:bg-[#2E7FE5]/15 transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    View release notes
+                  </a>
+                )}
               </div>
             </div>
             <div className="ml-4 flex items-center gap-2">

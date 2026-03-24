@@ -17,6 +17,8 @@ export interface Release {
   estimatedDate: Date;
   anticipatedRelease: string;
   consultationPeriod?: string;
+  released: boolean;
+  releaseNotesUrl?: string;
   features: Feature[];
 }
 
@@ -172,6 +174,15 @@ function getDateAttribute(
   throw new Error(`Expected '${key}' date in ${filePath}`);
 }
 
+function getBooleanAttribute(
+  attributes: Record<string, unknown>,
+  key: string,
+): boolean {
+  const value = attributes[key];
+
+  return typeof value === 'string' && value.trim().toLowerCase() === 'true';
+}
+
 function getFeaturesAttribute(
   attributes: Record<string, unknown>,
   filePath: string,
@@ -204,6 +215,8 @@ export const roadmapData: Release[] = Object.entries(releaseModules)
       estimatedDate: getDateAttribute(module.attributes, 'date', path),
       anticipatedRelease: getStringAttribute(module.attributes, 'anticipatedRelease', path),
       consultationPeriod: getOptionalStringAttribute(module.attributes, 'consultationPeriod'),
+      released: getBooleanAttribute(module.attributes, 'released'),
+      releaseNotesUrl: getOptionalStringAttribute(module.attributes, 'releaseNotesUrl'),
       features: getFeaturesAttribute(module.attributes, path),
     };
   })
