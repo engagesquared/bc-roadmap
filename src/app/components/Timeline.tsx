@@ -1,7 +1,7 @@
 import type { Release } from "../data/roadmap";
 import type { ReleaseMarkerPlacement } from "./ReleaseMarker";
 import { ReleaseMarker } from "./ReleaseMarker";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useIsMobile } from "./ui/use-mobile";
 
 const TODAY_LABEL_HEIGHT = 20;
@@ -17,13 +17,13 @@ interface TimelineGeometry {
 }
 
 const DESKTOP_GEOMETRY: TimelineGeometry = {
-  timelineY: 330,
+  timelineY: 400,
   startPadding: 160,
   endPadding: 260,
   timelineLength: 2200,
   lineInset: 40,
   overlapThreshold: 290,
-  canvasHeight: 720,
+  canvasHeight: 800,
 };
 
 const MOBILE_GEOMETRY: TimelineGeometry = {
@@ -35,6 +35,34 @@ const MOBILE_GEOMETRY: TimelineGeometry = {
   overlapThreshold: 200,
   canvasHeight: 460,
 };
+
+/** Below this container height (px), switch desktop to adapted short layout */
+const SHORT_DESKTOP_THRESHOLD = DESKTOP_GEOMETRY.canvasHeight;
+
+/** Below this container height (px), use compact cards on short desktop */
+const COMPACT_HEIGHT_THRESHOLD = 500;
+
+function useContainerHeight(ref: React.RefObject<HTMLDivElement | null>) {
+  const [height, setHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setHeight(Math.floor(entry.contentRect.height));
+      }
+    });
+
+    setHeight(Math.floor(el.clientHeight));
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return height;
+}
 
 function getStartOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -91,7 +119,35 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedMarkerRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const isMobile = useIsMobile();
-  const geo = isMobile ? MOBILE_GEOMETRY : DESKTOP_GEOMETRY;
+  const containerHeight = useContainerHeight(scrollContainerRef);
+
+  let geo: TimelineGeometry;
+  let forceBelow: boolean;
+  let useCompactCards: boolean;
+
+  if (isMobile) {
+    geo = MOBILE_GEOMETRY;
+    forceBelow = true;
+    useCompactCards = true;
+  } else if (containerHeight > 0 && containerHeight < SHORT_DESKTOP_THRESHOLD) {
+    // Wide but short viewport — adapt geometry to fit available height
+    const timelineY = Math.max(80, Math.min(160, Math.floor(containerHeight * 0.28)));
+    useCompactCards = containerHeight < COMPACT_HEIGHT_THRESHOLD;
+    geo = {
+      timelineY,
+      startPadding: DESKTOP_GEOMETRY.startPadding,
+      endPadding: DESKTOP_GEOMETRY.endPadding,
+      timelineLength: DESKTOP_GEOMETRY.timelineLength,
+      lineInset: DESKTOP_GEOMETRY.lineInset,
+      overlapThreshold: DESKTOP_GEOMETRY.overlapThreshold,
+      canvasHeight: containerHeight,
+    };
+    forceBelow = true;
+  } else {
+    geo = DESKTOP_GEOMETRY;
+    forceBelow = false;
+    useCompactCards = false;
+  }
 
   const scrollContentWidth = geo.startPadding + geo.timelineLength + geo.endPadding;
   const timelineLineLeft = geo.startPadding - geo.lineInset;
@@ -113,7 +169,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
     return geo.startPadding + percentageAlong * geo.timelineLength;
   };
 
-  const placements = computePlacements(sortedReleases, getTimelinePosition, geo.overlapThreshold, isMobile);
+  const placements = computePlacements(sortedReleases, getTimelinePosition, geo.overlapThreshold, forceBelow);
   const today = new Date();
   const todayMarkerPosition = getTimelinePosition(today);
   const showTodayMarker = today >= timelineStartDate && today <= timelineEndDate;
@@ -298,7 +354,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
               timelineY={geo.timelineY}
               placement={placements[index]}
               isSelected={selectedReleaseId === release.id}
-              compact={isMobile}
+              compact={useCompactCards}
               onClick={() => onReleaseClick(release.id)}
               onFeatureClick={(featureIndex) => onFeatureClick(release.id, featureIndex)}
               ref={(el) => {
