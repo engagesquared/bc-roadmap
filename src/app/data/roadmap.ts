@@ -4,61 +4,116 @@ interface MarkdownModule {
 }
 
 export interface Feature {
-  id: string;
   title: string;
-  description: string; // Brief description for list view
-  content: string; // Markdown content
+  description: string;
 }
 
 export interface Release {
   id: string;
   version: string;
   theme: string;
-  description: string; // Markdown content
+  summary: string;
+  description: string;
   estimatedDate: Date;
+  anticipatedRelease: string;
+  consultationPeriod?: string;
   features: Feature[];
 }
 
-const releaseModules = import.meta.glob('/content/releases/**/release.md', {
+const releaseModules = import.meta.glob('/content/releases/*/release.md', {
   eager: true,
   query: '?raw',
   import: 'default',
 }) as Record<string, string>;
 
-const featureModules = import.meta.glob('/content/releases/**/features/*.md', {
-  eager: true,
-  query: '?raw',
-  import: 'default',
-}) as Record<string, string>;
+function parseScalar(value: string): string {
+  const trimmedValue = value.trim();
 
-function parseMarkdownModule(source: string, filePath: string): MarkdownModule {
+  return trimmedValue.replace(/^(['"])(.*)\1$/, '$2');
+}
+
+function parseFrontmatter(source: string, filePath: string): MarkdownModule {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
 
   if (!match) {
     throw new Error(`Expected YAML frontmatter in ${filePath}`);
   }
 
-  const attributes = match[1]
-    .split(/\r?\n/)
-    .filter((line) => line.trim().length > 0)
-    .reduce<Record<string, string>>((result, line) => {
-      const separatorIndex = line.indexOf(':');
+  const lines = match[1].split(/\r?\n/);
+  const attributes: Record<string, unknown> = {};
 
-      if (separatorIndex === -1) {
-        throw new Error(`Invalid frontmatter line in ${filePath}: ${line}`);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+
+    if (!line.trim()) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf(':');
+
+    if (separatorIndex === -1) {
+      throw new Error(`Invalid frontmatter line in ${filePath}: ${line}`);
+    }
+
+    const key = line.slice(0, separatorIndex).trim();
+    const rawValue = line.slice(separatorIndex + 1).trim();
+
+    if (key === 'features') {
+      const features: Feature[] = [];
+
+      while (index + 1 < lines.length && /^  - /.test(lines[index + 1])) {
+        index += 1;
+        const featureLine = lines[index].trim();
+        const featureSeparatorIndex = featureLine.indexOf(':');
+
+        if (!featureLine.startsWith('- ') || featureSeparatorIndex === -1) {
+          throw new Error(`Invalid feature line in ${filePath}: ${lines[index]}`);
+        }
+
+        const feature: Partial<Feature> = {};
+        const featureKey = featureLine.slice(2, featureSeparatorIndex).trim();
+        const featureValue = featureLine.slice(featureSeparatorIndex + 1).trim();
+
+        if (featureKey !== 'title') {
+          throw new Error(`Expected feature title in ${filePath}: ${lines[index]}`);
+        }
+
+        feature.title = parseScalar(featureValue);
+
+        while (index + 1 < lines.length && /^    /.test(lines[index + 1])) {
+          index += 1;
+          const nestedLine = lines[index].trim();
+          const nestedSeparatorIndex = nestedLine.indexOf(':');
+
+          if (nestedSeparatorIndex === -1) {
+            throw new Error(`Invalid feature attribute in ${filePath}: ${lines[index]}`);
+          }
+
+          const nestedKey = nestedLine.slice(0, nestedSeparatorIndex).trim();
+          const nestedValue = nestedLine.slice(nestedSeparatorIndex + 1).trim();
+
+          if (nestedKey === 'description') {
+            feature.description = parseScalar(nestedValue);
+          }
+        }
+
+        if (!feature.title || !feature.description) {
+          throw new Error(`Expected feature title and description in ${filePath}`);
+        }
+
+        features.push(feature as Feature);
       }
 
-      const key = line.slice(0, separatorIndex).trim();
-      const rawValue = line.slice(separatorIndex + 1).trim();
-      const value = rawValue.replace(/^(['"])(.*)\1$/, '$2');
+      attributes.features = features;
+      continue;
+    }
 
-      result[key] = value;
-      return result;
-    }, {});
+    attributes[key] = parseScalar(rawValue);
+  }
 
   return {
     attributes,
-    body: match[2],
+    body: match[2].trim(),
   };
 }
 
@@ -70,16 +125,6 @@ function getReleaseVersionFromPath(path: string): string {
   }
 
   return match[1];
-}
-
-function getFeatureSlugFromPath(path: string): string {
-  const match = path.match(/^\/content\/releases\/[^/]+\/features\/([^/]+)\.md$/);
-
-  if (!match) {
-    throw new Error(`Invalid feature markdown path: ${path}`);
-  }
-
-  return match[1].replace(/^\d+-/, '');
 }
 
 function getStringAttribute(
@@ -96,16 +141,25 @@ function getStringAttribute(
   return value.trim();
 }
 
+function getOptionalStringAttribute(
+  attributes: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  const value = attributes[key];
+
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return undefined;
+  }
+
+  return value.trim();
+}
+
 function getDateAttribute(
   attributes: Record<string, unknown>,
   key: string,
   filePath: string,
 ): Date {
   const value = attributes[key];
-
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value;
-  }
 
   if (typeof value === 'string') {
     const parsedDate = new Date(value);
@@ -118,54 +172,39 @@ function getDateAttribute(
   throw new Error(`Expected '${key}' date in ${filePath}`);
 }
 
-function getFeatureSummary(module: MarkdownModule, filePath: string): string {
-  const summary = module.attributes.summary;
+function getFeaturesAttribute(
+  attributes: Record<string, unknown>,
+  filePath: string,
+): Feature[] {
+  const value = attributes.features;
 
-  if (typeof summary === 'string' && summary.trim().length > 0) {
-    return summary.trim();
+  if (value === undefined) {
+    return [];
   }
 
-  const firstParagraph = module.body
-    .split(/\n\s*\n/)
-    .map((section) => section.replace(/[#*_`>-]/g, '').trim())
-    .find(Boolean);
-
-  if (!firstParagraph) {
-    throw new Error(`Expected markdown content in ${filePath}`);
+  if (!Array.isArray(value)) {
+    throw new Error(`Expected 'features' list in ${filePath}`);
   }
 
-  return firstParagraph;
-}
-
-function getReleaseFeatures(version: string): Feature[] {
-  return Object.entries(featureModules)
-    .filter(([path]) => path.startsWith(`/content/releases/${version}/features/`))
-    .sort(([leftPath], [rightPath]) => leftPath.localeCompare(rightPath))
-    .map(([path, source]) => {
-      const module = parseMarkdownModule(source, path);
-
-      return {
-        id: `feature-${getFeatureSlugFromPath(path)}`,
-        title: getStringAttribute(module.attributes, 'title', path),
-        description: getFeatureSummary(module, path),
-        content: module.body.trim(),
-      };
-    });
+  return value as Feature[];
 }
 
 export const roadmapData: Release[] = Object.entries(releaseModules)
   .sort(([leftPath], [rightPath]) => leftPath.localeCompare(rightPath))
   .map(([path, source]) => {
-    const module = parseMarkdownModule(source, path);
+    const module = parseFrontmatter(source, path);
     const version = getReleaseVersionFromPath(path);
 
     return {
       id: `release-${version}`,
-      version,
+      version: getStringAttribute(module.attributes, 'version', path),
       theme: getStringAttribute(module.attributes, 'title', path),
-      description: module.body.trim(),
+      summary: getStringAttribute(module.attributes, 'summary', path),
+      description: module.body,
       estimatedDate: getDateAttribute(module.attributes, 'date', path),
-      features: getReleaseFeatures(version),
+      anticipatedRelease: getStringAttribute(module.attributes, 'anticipatedRelease', path),
+      consultationPeriod: getOptionalStringAttribute(module.attributes, 'consultationPeriod'),
+      features: getFeaturesAttribute(module.attributes, path),
     };
   })
   .sort((left, right) => left.estimatedDate.getTime() - right.estimatedDate.getTime());

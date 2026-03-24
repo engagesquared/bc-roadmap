@@ -1,8 +1,7 @@
-import { Release } from "../data/roadmap";
+import type { Release } from "../data/roadmap";
 import { ReleaseMarker } from "./ReleaseMarker";
 import { useEffect, useRef } from "react";
 
-/** Y-coordinate (px from top of scroll content) for the centre of the timeline line. */
 const TIMELINE_Y = 72;
 const START_PADDING = 160;
 const END_PADDING = 260;
@@ -11,6 +10,18 @@ const TIMELINE_LINE_INSET = 40;
 const SCROLL_CONTENT_WIDTH = START_PADDING + TIMELINE_LENGTH + END_PADDING;
 const TIMELINE_LINE_LEFT = START_PADDING - TIMELINE_LINE_INSET;
 const TIMELINE_LINE_WIDTH = TIMELINE_LENGTH + TIMELINE_LINE_INSET * 2;
+
+function getStartOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function getEndOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+function getQuarterLabel(date: Date): string {
+  return `Q${Math.floor(date.getMonth() / 3) + 1} ${date.getFullYear()}`;
+}
 
 interface TimelineProps {
   releases: Release[];
@@ -21,23 +32,28 @@ interface TimelineProps {
 export function Timeline({ releases, selectedReleaseId, onReleaseClick }: TimelineProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedMarkerRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const sortedReleases = [...releases].sort(
+    (left, right) => left.estimatedDate.getTime() - right.estimatedDate.getTime(),
+  );
+  const firstReleaseDate = sortedReleases[0]?.estimatedDate;
+  const lastReleaseDate = sortedReleases[sortedReleases.length - 1]?.estimatedDate;
+  const timelineStartDate = firstReleaseDate ? getStartOfMonth(firstReleaseDate) : new Date();
+  const timelineEndDate = lastReleaseDate ? getEndOfMonth(lastReleaseDate) : new Date();
 
-  // Convert vertical wheel events into horizontal scroll
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY === 0) return;
-      e.preventDefault();
-      container.scrollLeft += e.deltaY * 3;
+    const handleWheel = (event: WheelEvent) => {
+      if (event.deltaY === 0) return;
+      event.preventDefault();
+      container.scrollLeft += event.deltaY * 3;
     };
 
     container.addEventListener("wheel", handleWheel, { passive: false });
     return () => container.removeEventListener("wheel", handleWheel);
   }, []);
 
-  // Click-and-drag horizontal scrolling
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -46,21 +62,20 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
     let startX = 0;
     let startScrollLeft = 0;
 
-    const handleMouseDown = (e: MouseEvent) => {
-      // Only primary button; ignore clicks on interactive elements
-      if (e.button !== 0) return;
-      if ((e.target as HTMLElement).closest("button, a, [role='button']")) return;
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+      if ((event.target as HTMLElement).closest("button, a, [role='button']")) return;
 
       isDragging = true;
-      startX = e.clientX;
+      startX = event.clientX;
       startScrollLeft = container.scrollLeft;
       container.style.cursor = "grabbing";
       container.style.userSelect = "none";
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (event: MouseEvent) => {
       if (!isDragging) return;
-      const dx = e.clientX - startX;
+      const dx = event.clientX - startX;
       container.scrollLeft = startScrollLeft - dx;
     };
 
@@ -74,6 +89,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
     container.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+
     return () => {
       container.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -81,78 +97,85 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
     };
   }, []);
 
-  // Auto-scroll to selected release
   useEffect(() => {
-    if (selectedReleaseId && scrollContainerRef.current) {
-      const markerElement = selectedMarkerRef.current[selectedReleaseId];
-      if (markerElement) {
-        const container = scrollContainerRef.current;
-        const markerRect = markerElement.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        
-        const scrollLeft = container.scrollLeft + markerRect.left - containerRect.left - (containerRect.width / 2) + (markerRect.width / 2);
-        
-        container.scrollTo({
-          left: scrollLeft,
-          behavior: 'smooth'
-        });
-      }
+    if (!selectedReleaseId || !scrollContainerRef.current) {
+      return;
     }
+
+    const markerElement = selectedMarkerRef.current[selectedReleaseId];
+    if (!markerElement) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    const markerRect = markerElement.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const scrollLeft =
+      container.scrollLeft +
+      markerRect.left -
+      containerRect.left -
+      containerRect.width / 2 +
+      markerRect.width / 2;
+
+    container.scrollTo({
+      left: scrollLeft,
+      behavior: "smooth",
+    });
   }, [selectedReleaseId]);
 
-  // Calculate positions based on dates
   const getTimelinePosition = (date: Date) => {
-    // Find min and max dates
-    const dates = releases.map(r => r.estimatedDate.getTime());
-    const minDate = Math.min(...dates);
-    const maxDate = Math.max(...dates);
-    
-    // Calculate position as percentage of time range
-    const timeRange = maxDate - minDate;
-    const timeFromStart = date.getTime() - minDate;
+    const timeRange = timelineEndDate.getTime() - timelineStartDate.getTime();
+    const timeFromStart = date.getTime() - timelineStartDate.getTime();
     const percentageAlong = timeRange > 0 ? timeFromStart / timeRange : 0;
-    
-    return START_PADDING + (percentageAlong * TIMELINE_LENGTH);
+
+    return START_PADDING + percentageAlong * TIMELINE_LENGTH;
   };
 
-  // Generate month markers – tick + label sit just below the line
   const generateMonthMarkers = () => {
     const markers = [];
-    const currentYear = 2026;
-    
-    for (let month = 0; month < 12; month++) {
-      const date = new Date(currentYear, month, 1);
+    const currentDate = getStartOfMonth(timelineStartDate);
+    const endDate = getStartOfMonth(timelineEndDate);
+
+    while (currentDate <= endDate) {
+      const date = new Date(currentDate);
       const position = getTimelinePosition(date);
-      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-      
+      const monthName = date.toLocaleDateString("en-US", { month: "short" });
+
       markers.push(
         <div
-          key={`month-${month}`}
+          key={`month-${date.getFullYear()}-${date.getMonth()}`}
           className="absolute text-xs text-gray-400"
           style={{ left: `${position}px`, top: `${TIMELINE_Y + 6}px` }}
         >
           <div className="w-px h-2 bg-gray-300 mb-1" />
           {monthName}
-        </div>
+        </div>,
       );
+
+      currentDate.setMonth(currentDate.getMonth() + 1);
     }
-    
+
     return markers;
   };
 
-  // Quarter indicators – sit above the timeline line
   const generateQuarterMarkers = () => {
-    const quarters = [
-      { name: 'Q1 2026', month: 0 },
-      { name: 'Q2 2026', month: 3 },
-      { name: 'Q3 2026', month: 6 },
-      { name: 'Q4 2026', month: 9 },
-    ];
-    
-    return quarters.map(({ name, month }) => {
-      const date = new Date(2026, month, 1);
+    const quarters = [];
+    const quarterStartMonth = Math.floor(timelineStartDate.getMonth() / 3) * 3;
+    const currentDate = new Date(timelineStartDate.getFullYear(), quarterStartMonth, 1);
+    const endDate = getStartOfMonth(timelineEndDate);
+
+    while (currentDate <= endDate) {
+      const date = new Date(currentDate);
+      quarters.push({
+        name: getQuarterLabel(date),
+        date,
+      });
+      currentDate.setMonth(currentDate.getMonth() + 3);
+    }
+
+    return quarters.map(({ name, date }) => {
       const position = getTimelinePosition(date);
-      
+
       return (
         <div
           key={name}
@@ -167,30 +190,25 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
 
   return (
     <div className="relative w-full h-full">
-      {/* Scroll indicators - outside scroll container so they stay fixed */}
       <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
 
-      <div 
+      <div
         ref={scrollContainerRef}
         className="w-full h-full overflow-x-auto flex items-center scroll-smooth cursor-grab"
-        style={{ scrollbarWidth: 'thin' }}
+        style={{ scrollbarWidth: "thin" }}
       >
-        <div className="relative shrink-0" style={{ minWidth: `${SCROLL_CONTENT_WIDTH}px`, height: '380px' }}>
-          {/* Quarter markers */}
+        <div className="relative shrink-0" style={{ minWidth: `${SCROLL_CONTENT_WIDTH}px`, height: "380px" }}>
           {generateQuarterMarkers()}
-          
-          {/* Main timeline line */}
+
           <div
             className="absolute bg-[#2E7FE5] rounded-full shadow-sm"
-            style={{ left: `${TIMELINE_LINE_LEFT}px`, width: `${TIMELINE_LINE_WIDTH}px`, height: '2px', top: `${TIMELINE_Y}px` }}
+            style={{ left: `${TIMELINE_LINE_LEFT}px`, width: `${TIMELINE_LINE_WIDTH}px`, height: "2px", top: `${TIMELINE_Y}px` }}
           />
-          
-          {/* Month markers */}
+
           {generateMonthMarkers()}
-          
-          {/* Release markers */}
-          {releases.map((release) => (
+
+          {sortedReleases.map((release) => (
             <ReleaseMarker
               key={release.id}
               release={release}
@@ -198,7 +216,9 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
               timelineY={TIMELINE_Y}
               isSelected={selectedReleaseId === release.id}
               onClick={() => onReleaseClick(release.id)}
-              ref={(el) => selectedMarkerRef.current[release.id] = el}
+              ref={(el) => {
+                selectedMarkerRef.current[release.id] = el;
+              }}
             />
           ))}
         </div>
