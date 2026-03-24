@@ -6,6 +6,11 @@ import { SearchModal } from "./components/SearchModal";
 import { roadmapData } from "./data/roadmap";
 import logo from "./assets/brief-connect-logo.svg";
 
+interface HashSelection {
+  releaseId: string;
+  featureIndex: number | null;
+}
+
 function stripMarkdown(value: string): string {
   return value
     .replace(/\[(.*?)\]\((.*?)\)/g, "$1 ($2)")
@@ -25,18 +30,35 @@ function formatReleaseDate(date: Date): string {
   });
 }
 
-function parseHash(hash: string): string | null {
+function parseHash(hash: string): HashSelection | null {
   const value = hash.replace(/^#/, "").trim();
 
   if (!value) {
     return null;
   }
 
-  const releaseId = decodeURIComponent(value.split("/")[0]);
-  return roadmapData.some((entry) => entry.id === releaseId) ? releaseId : null;
+  const [releaseSegment, featureSegment] = value.split("/");
+  const releaseId = decodeURIComponent(releaseSegment);
+  const release = roadmapData.find((entry) => entry.id === releaseId);
+
+  if (!release) {
+    return null;
+  }
+
+  if (featureSegment === undefined) {
+    return { releaseId, featureIndex: null };
+  }
+
+  const featureIndex = Number.parseInt(decodeURIComponent(featureSegment), 10);
+
+  if (!Number.isInteger(featureIndex) || featureIndex < 0 || featureIndex >= release.features.length) {
+    return { releaseId, featureIndex: null };
+  }
+
+  return { releaseId, featureIndex };
 }
 
-function getInitialSelection(): string | null {
+function getInitialSelection(): HashSelection | null {
   if (typeof window === "undefined") {
     return null;
   }
@@ -45,8 +67,8 @@ function getInitialSelection(): string | null {
 }
 
 export default function App() {
-  const [selectedReleaseId, setSelectedReleaseId] = useState<string | null>(getInitialSelection);
-  const [selectedFeatureIndex, setSelectedFeatureIndex] = useState<number | null>(null);
+  const [selectedReleaseId, setSelectedReleaseId] = useState<string | null>(() => getInitialSelection()?.releaseId ?? null);
+  const [selectedFeatureIndex, setSelectedFeatureIndex] = useState<number | null>(() => getInitialSelection()?.featureIndex ?? null);
   const [searchOpen, setSearchOpen] = useState(false);
 
   const selectedRelease = roadmapData.find((release) => release.id === selectedReleaseId) || null;
@@ -66,8 +88,9 @@ export default function App() {
     : null;
 
   const syncSelectionFromLocation = useCallback(() => {
-    setSelectedReleaseId(parseHash(window.location.hash));
-    setSelectedFeatureIndex(null);
+    const selection = parseHash(window.location.hash);
+    setSelectedReleaseId(selection?.releaseId ?? null);
+    setSelectedFeatureIndex(selection?.featureIndex ?? null);
   }, []);
 
   useEffect(() => {
@@ -87,12 +110,7 @@ export default function App() {
 
   const handleFeatureClick = (releaseId: string, featureIndex: number) => {
     setSelectedFeatureIndex(featureIndex);
-
-    if (selectedReleaseId === releaseId) {
-      return;
-    }
-
-    window.location.hash = `#${encodeURIComponent(releaseId)}`;
+    window.location.hash = `#${encodeURIComponent(releaseId)}/${featureIndex}`;
   };
 
   const handleCloseRelease = () => {
