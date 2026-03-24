@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Release } from "../data/roadmap";
 import ReactMarkdown from "react-markdown";
 import { ArrowLeft, CalendarDays, ExternalLink, MessageSquareMore, Rocket, X } from "lucide-react";
@@ -23,6 +24,28 @@ export function ReleaseDetailModal({
   onBackToRelease,
   onClose,
 }: ReleaseDetailModalProps) {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const releaseScrollTopRef = useRef(0);
+
+  useEffect(() => {
+    releaseScrollTopRef.current = 0;
+  }, [release?.id]);
+
+  useEffect(() => {
+    const contentElement = contentRef.current;
+
+    if (!contentElement) {
+      return;
+    }
+
+    if (selectedFeatureIndex !== null) {
+      contentElement.scrollTop = 0;
+      return;
+    }
+
+    contentElement.scrollTop = releaseScrollTopRef.current;
+  }, [selectedFeatureIndex, release?.id]);
+
   if (!release) return null;
 
   const selectedFeature =
@@ -123,7 +146,7 @@ export function ReleaseDetailModal({
             </div>
           </div>
 
-          <div className="overflow-y-auto p-4 sm:p-8 flex-1 min-h-0">
+          <div ref={contentRef} className="overflow-y-auto p-4 sm:p-8 flex-1 min-h-0">
             {selectedFeature ? (
               <motion.div
                 key={`${release.id}-feature-${selectedFeatureIndex}`}
@@ -163,8 +186,11 @@ export function ReleaseDetailModal({
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
                           className="w-full p-4 sm:p-6 rounded-xl border-2 border-gray-200 bg-gradient-to-r from-[#2E7FE5]/5 to-transparent hover:border-[#2E7FE5]/40 hover:from-[#2E7FE5]/10 text-left transition-colors"
-                          onClick={() => onFeatureSelect(index)}
-                        >
+                           onClick={() => {
+                             releaseScrollTopRef.current = contentRef.current?.scrollTop ?? 0;
+                             onFeatureSelect(index);
+                           }}
+                         >
                           <div className="flex items-start justify-between gap-3 sm:gap-4">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 sm:gap-3 mb-2">
