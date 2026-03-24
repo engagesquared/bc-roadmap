@@ -1,8 +1,9 @@
 import type { Release } from "../data/roadmap";
+import type { ReleaseMarkerPlacement } from "./ReleaseMarker";
 import { ReleaseMarker } from "./ReleaseMarker";
 import { useEffect, useRef } from "react";
 
-const TIMELINE_Y = 72;
+const TIMELINE_Y = 330;
 const START_PADDING = 160;
 const END_PADDING = 260;
 const TIMELINE_LENGTH = 2200;
@@ -10,6 +11,7 @@ const TIMELINE_LINE_INSET = 40;
 const SCROLL_CONTENT_WIDTH = START_PADDING + TIMELINE_LENGTH + END_PADDING;
 const TIMELINE_LINE_LEFT = START_PADDING - TIMELINE_LINE_INSET;
 const TIMELINE_LINE_WIDTH = TIMELINE_LENGTH + TIMELINE_LINE_INSET * 2;
+const OVERLAP_THRESHOLD = 290;
 
 function getStartOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -30,6 +32,32 @@ interface TimelineProps {
   onFeatureClick: (releaseId: string, featureIndex: number) => void;
 }
 
+function computePlacements(
+  sortedReleases: Release[],
+  getPosition: (date: Date) => number,
+): ReleaseMarkerPlacement[] {
+  const placements: ReleaseMarkerPlacement[] = [];
+  let lastBelowPos = -Infinity;
+  let lastAbovePos = -Infinity;
+
+  for (let i = 0; i < sortedReleases.length; i++) {
+    const pos = getPosition(sortedReleases[i].estimatedDate);
+
+    if (pos - lastBelowPos >= OVERLAP_THRESHOLD) {
+      placements.push("below");
+      lastBelowPos = pos;
+    } else if (pos - lastAbovePos >= OVERLAP_THRESHOLD) {
+      placements.push("above");
+      lastAbovePos = pos;
+    } else {
+      placements.push("below");
+      lastBelowPos = pos;
+    }
+  }
+
+  return placements;
+}
+
 export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatureClick }: TimelineProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedMarkerRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -40,6 +68,16 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
   const lastReleaseDate = sortedReleases[sortedReleases.length - 1]?.estimatedDate;
   const timelineStartDate = firstReleaseDate ? getStartOfMonth(firstReleaseDate) : new Date();
   const timelineEndDate = lastReleaseDate ? getEndOfMonth(lastReleaseDate) : new Date();
+
+  const getTimelinePosition = (date: Date) => {
+    const timeRange = timelineEndDate.getTime() - timelineStartDate.getTime();
+    const timeFromStart = date.getTime() - timelineStartDate.getTime();
+    const percentageAlong = timeRange > 0 ? timeFromStart / timeRange : 0;
+
+    return START_PADDING + percentageAlong * TIMELINE_LENGTH;
+  };
+
+  const placements = computePlacements(sortedReleases, getTimelinePosition);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -124,14 +162,6 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
     });
   }, [selectedReleaseId]);
 
-  const getTimelinePosition = (date: Date) => {
-    const timeRange = timelineEndDate.getTime() - timelineStartDate.getTime();
-    const timeFromStart = date.getTime() - timelineStartDate.getTime();
-    const percentageAlong = timeRange > 0 ? timeFromStart / timeRange : 0;
-
-    return START_PADDING + percentageAlong * TIMELINE_LENGTH;
-  };
-
   const generateMonthMarkers = () => {
     const markers = [];
     const currentDate = getStartOfMonth(timelineStartDate);
@@ -199,7 +229,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
         className="w-full h-full overflow-x-auto flex items-center scroll-smooth cursor-grab"
         style={{ scrollbarWidth: "thin" }}
       >
-        <div className="relative shrink-0" style={{ minWidth: `${SCROLL_CONTENT_WIDTH}px`, height: "380px" }}>
+        <div className="relative shrink-0" style={{ minWidth: `${SCROLL_CONTENT_WIDTH}px`, height: "720px" }}>
           {generateQuarterMarkers()}
 
           <div
@@ -209,12 +239,13 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
 
           {generateMonthMarkers()}
 
-          {sortedReleases.map((release) => (
+          {sortedReleases.map((release, index) => (
             <ReleaseMarker
               key={release.id}
               release={release}
               position={getTimelinePosition(release.estimatedDate)}
               timelineY={TIMELINE_Y}
+              placement={placements[index]}
               isSelected={selectedReleaseId === release.id}
               onClick={() => onReleaseClick(release.id)}
               onFeatureClick={(featureIndex) => onFeatureClick(release.id, featureIndex)}
