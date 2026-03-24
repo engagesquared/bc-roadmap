@@ -33,7 +33,7 @@ export default function App() {
   return (
     <div className="size-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-3 border-b border-gray-200 flex items-center gap-3">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 flex items-center gap-5">
         <img src={logo} alt="Brief Connect" className="h-10" />
         <h1 className="text-lg font-semibold text-[#1A1A1A]">Product Roadmap</h1>
       </div>

@@ -2,6 +2,9 @@ import { Release } from "../data/roadmap";
 import { ReleaseMarker } from "./ReleaseMarker";
 import { useEffect, useRef } from "react";
 
+/** Y-coordinate (px from top of scroll content) for the centre of the timeline line. */
+const TIMELINE_Y = 72;
+
 interface TimelineProps {
   releases: Release[];
   selectedReleaseId: string | null;
@@ -99,7 +102,6 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
     
     // Timeline constants - much more compact
     const startPadding = 200; // px from left edge
-    const endPadding = 200; // px from right edge
     const timelineLength = 3000; // Total scrollable timeline length
     
     // Calculate position as percentage of time range
@@ -110,7 +112,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
     return startPadding + (percentageAlong * timelineLength);
   };
 
-  // Generate month markers for the entire year
+  // Generate month markers – tick + label sit just below the line
   const generateMonthMarkers = () => {
     const markers = [];
     const currentYear = 2026;
@@ -123,8 +125,8 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
       markers.push(
         <div
           key={`month-${month}`}
-          className="absolute top-28 text-xs text-gray-400"
-          style={{ left: `${position}px` }}
+          className="absolute text-xs text-gray-400"
+          style={{ left: `${position}px`, top: `${TIMELINE_Y + 6}px` }}
         >
           <div className="w-px h-2 bg-gray-300 mb-1" />
           {monthName}
@@ -135,7 +137,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
     return markers;
   };
 
-  // Calculate quarter indicators
+  // Quarter indicators – sit above the timeline line
   const generateQuarterMarkers = () => {
     const quarters = [
       { name: 'Q1 2026', month: 0 },
@@ -151,8 +153,8 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
       return (
         <div
           key={name}
-          className="absolute top-0 text-base font-semibold text-gray-600"
-          style={{ left: `${position}px` }}
+          className="absolute text-base font-semibold text-gray-600"
+          style={{ left: `${position}px`, top: `${TIMELINE_Y - 32}px` }}
         >
           {name}
         </div>
@@ -161,38 +163,36 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
   };
 
   return (
-    <div 
-      ref={scrollContainerRef}
-      className="relative w-full h-full overflow-x-auto pb-8 scroll-smooth cursor-grab"
-      style={{ scrollbarWidth: 'thin' }}
-    >
-      {/* Scroll indicators */}
-      <div className="absolute left-0 top-0 bottom-8 w-20 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
-      <div className="absolute right-0 top-0 bottom-8 w-20 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
-      
-      <div className="relative h-full" style={{ minWidth: '3600px' }}>
-        {/* Quarter markers */}
-        <div className="relative h-12 mb-6">
+    <div className="relative w-full h-full">
+      {/* Scroll indicators - outside scroll container so they stay fixed */}
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
+
+      <div 
+        ref={scrollContainerRef}
+        className="w-full h-full overflow-x-auto flex items-center scroll-smooth cursor-grab"
+        style={{ scrollbarWidth: 'thin' }}
+      >
+        <div className="relative shrink-0" style={{ minWidth: '3600px', height: '380px' }}>
+          {/* Quarter markers */}
           {generateQuarterMarkers()}
-        </div>
-        
-        {/* Main timeline line - solid */}
-        <div className="absolute top-48 bg-[#2E7FE5] rounded-full shadow-sm" 
-             style={{ left: '150px', width: '3300px', height: '2px' }} 
-        />
-        
-        {/* Month markers */}
-        <div className="relative">
+          
+          {/* Main timeline line */}
+          <div
+            className="absolute bg-[#2E7FE5] rounded-full shadow-sm"
+            style={{ left: '150px', width: '3300px', height: '2px', top: `${TIMELINE_Y}px` }}
+          />
+          
+          {/* Month markers */}
           {generateMonthMarkers()}
-        </div>
-        
-        {/* Release markers */}
-        <div className="relative">
+          
+          {/* Release markers */}
           {releases.map((release) => (
             <ReleaseMarker
               key={release.id}
               release={release}
               position={getTimelinePosition(release.estimatedDate)}
+              timelineY={TIMELINE_Y}
               isSelected={selectedReleaseId === release.id}
               onClick={() => onReleaseClick(release.id)}
               ref={(el) => selectedMarkerRef.current[release.id] = el}
