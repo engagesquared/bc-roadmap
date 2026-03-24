@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Lightbulb, Search } from "lucide-react";
 import { Timeline } from "./components/Timeline";
 import { roadmapData } from "./data/roadmap";
 import logo from "./assets/brief-connect-logo.svg";
@@ -94,6 +94,18 @@ export default function App() {
         `Permalink: ${permalink}`,
       ].join("\n"))}`
     : null;
+  const ideaSubmissionHref = `mailto:roadmap@brief-connect.com?subject=${encodeURIComponent("Roadmap idea")}&body=${encodeURIComponent([
+    "Hi Brief Connect team,",
+    "",
+    "I'd like to submit this idea for the roadmap:",
+    "",
+    "Context:",
+    "- Problem:",
+    "- Who it helps:",
+    "- Why now:",
+    "",
+    "Thanks,",
+  ].join("\n"))}`;
 
   const syncSelectionFromLocation = useCallback(() => {
     const selection = parseHash(window.location.hash);
@@ -132,10 +144,21 @@ export default function App() {
       <div className="flex-shrink-0 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center gap-3 sm:gap-5">
         <img src={logo} alt="Brief Connect" className="h-8 sm:h-10" />
         <h1 className="text-base sm:text-lg font-semibold text-[#1A1A1A] truncate">Product Roadmap</h1>
+        <a
+          href={ideaSubmissionHref}
+          aria-label="Submit your idea"
+          title="Submit your idea"
+          className="group relative ml-auto inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-[#5E6678] transition-colors hover:border-[#2E7FE5] hover:text-[#2E7FE5]"
+        >
+          <Lightbulb className="h-4 w-4" />
+          <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-[#1A1A1A] px-2 py-1 text-xs font-medium text-white shadow-lg group-hover:block">
+            Submit your idea
+          </span>
+        </a>
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-[#5E6678] hover:border-[#2E7FE5] hover:text-[#2E7FE5] transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-[#5E6678] hover:border-[#2E7FE5] hover:text-[#2E7FE5] transition-colors"
         >
           <Search className="w-4 h-4" />
           <span className="hidden sm:inline">Search</span>
