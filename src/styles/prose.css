@@ -101,6 +101,9 @@
 }
 
 .prose :where(img):not(:where([class~="not-prose"] *)) {
+  display: block;
+  max-width: 100%;
+  height: auto;
   margin-top: 2em;
   margin-bottom: 2em;
   border-radius: 0.5rem;

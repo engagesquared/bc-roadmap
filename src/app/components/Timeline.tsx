@@ -4,6 +4,13 @@ import { useEffect, useRef } from "react";
 
 /** Y-coordinate (px from top of scroll content) for the centre of the timeline line. */
 const TIMELINE_Y = 72;
+const START_PADDING = 160;
+const END_PADDING = 260;
+const TIMELINE_LENGTH = 2200;
+const TIMELINE_LINE_INSET = 40;
+const SCROLL_CONTENT_WIDTH = START_PADDING + TIMELINE_LENGTH + END_PADDING;
+const TIMELINE_LINE_LEFT = START_PADDING - TIMELINE_LINE_INSET;
+const TIMELINE_LINE_WIDTH = TIMELINE_LENGTH + TIMELINE_LINE_INSET * 2;
 
 interface TimelineProps {
   releases: Release[];
@@ -100,16 +107,12 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
     const minDate = Math.min(...dates);
     const maxDate = Math.max(...dates);
     
-    // Timeline constants - much more compact
-    const startPadding = 200; // px from left edge
-    const timelineLength = 3000; // Total scrollable timeline length
-    
     // Calculate position as percentage of time range
     const timeRange = maxDate - minDate;
     const timeFromStart = date.getTime() - minDate;
     const percentageAlong = timeRange > 0 ? timeFromStart / timeRange : 0;
     
-    return startPadding + (percentageAlong * timelineLength);
+    return START_PADDING + (percentageAlong * TIMELINE_LENGTH);
   };
 
   // Generate month markers – tick + label sit just below the line
@@ -173,14 +176,14 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
         className="w-full h-full overflow-x-auto flex items-center scroll-smooth cursor-grab"
         style={{ scrollbarWidth: 'thin' }}
       >
-        <div className="relative shrink-0" style={{ minWidth: '3600px', height: '380px' }}>
+        <div className="relative shrink-0" style={{ minWidth: `${SCROLL_CONTENT_WIDTH}px`, height: '380px' }}>
           {/* Quarter markers */}
           {generateQuarterMarkers()}
           
           {/* Main timeline line */}
           <div
             className="absolute bg-[#2E7FE5] rounded-full shadow-sm"
-            style={{ left: '150px', width: '3300px', height: '2px', top: `${TIMELINE_Y}px` }}
+            style={{ left: `${TIMELINE_LINE_LEFT}px`, width: `${TIMELINE_LINE_WIDTH}px`, height: '2px', top: `${TIMELINE_Y}px` }}
           />
           
           {/* Month markers */}

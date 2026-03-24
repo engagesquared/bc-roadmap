@@ -1,0 +1,35 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="110" y1="70" x2="1090" y2="605" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF4FF" />
+      <stop offset="1" stop-color="#D7F0E8" />
+    </linearGradient>
+    <linearGradient id="panel" x1="210" y1="165" x2="950" y2="515" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" />
+      <stop offset="1" stop-color="#F5FAFF" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="#F7FBFF" />
+  <circle cx="145" cy="118" r="96" fill="#D9ECFF" />
+  <circle cx="1060" cy="585" r="122" fill="#DDF5EA" />
+  <rect x="70" y="70" width="1060" height="535" rx="36" fill="url(#bg)" />
+  <rect x="180" y="150" width="840" height="375" rx="28" fill="url(#panel)" stroke="#B8D8F8" stroke-width="2" />
+  <rect x="240" y="236" width="720" height="16" rx="8" fill="#B7D8FB" />
+  <circle cx="320" cy="244" r="22" fill="#2E7FE5" />
+  <circle cx="600" cy="244" r="22" fill="#2E7FE5" />
+  <circle cx="860" cy="244" r="22" fill="#2E7FE5" />
+  <rect x="287" y="302" width="120" height="76" rx="18" fill="#FFFFFF" stroke="#D4E6FA" />
+  <rect x="540" y="302" width="120" height="76" rx="18" fill="#FFFFFF" stroke="#D4E6FA" />
+  <rect x="793" y="302" width="120" height="76" rx="18" fill="#FFFFFF" stroke="#D4E6FA" />
+  <text x="240" y="130" fill="#1C3557" font-family="Arial, sans-serif" font-size="28" font-weight="700">Brief Connect Roadmap Test Image</text>
+  <text x="240" y="195" fill="#49627D" font-family="Arial, sans-serif" font-size="20">Use this image in markdown descriptions to verify rendering and scaling.</text>
+  <text x="286" y="335" fill="#2E7FE5" font-family="Arial, sans-serif" font-size="16" font-weight="700">Release 2.6</text>
+  <text x="286" y="360" fill="#5C7188" font-family="Arial, sans-serif" font-size="14">Group roles</text>
+  <text x="539" y="335" fill="#2E7FE5" font-family="Arial, sans-serif" font-size="16" font-weight="700">Release 2.8</text>
+  <text x="539" y="360" fill="#5C7188" font-family="Arial, sans-serif" font-size="14">Digital signing</text>
+  <text x="792" y="335" fill="#2E7FE5" font-family="Arial, sans-serif" font-size="16" font-weight="700">Release 3.0</text>
+  <text x="792" y="360" fill="#5C7188" font-family="Arial, sans-serif" font-size="14">Enterprise features</text>
+  <text x="240" y="445" fill="#35506D" font-family="Arial, sans-serif" font-size="18">Markdown example:</text>
+  <text x="240" y="478" fill="#17324E" font-family="Courier New, monospace" font-size="18">![Test image](/images/test-roadmap-image.svg)</text>
+  <text x="240" y="560" fill="#5C7188" font-family="Arial, sans-serif" font-size="15">1200 x 675 SVG for release and feature modal testing</text>
+</svg>
