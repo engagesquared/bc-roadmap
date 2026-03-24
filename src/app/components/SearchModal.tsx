@@ -7,6 +7,7 @@ interface SearchResult {
   type: "release" | "feature";
   releaseId: string;
   releaseVersion: string;
+  featureIndex?: number;
   title: string;
   subtitle: string;
   matchSnippet: string;
@@ -17,6 +18,7 @@ interface SearchModalProps {
   open: boolean;
   onClose: () => void;
   onSelectRelease: (releaseId: string) => void;
+  onSelectFeature: (releaseId: string, featureIndex: number) => void;
 }
 
 function searchReleases(releases: Release[], query: string): SearchResult[] {
@@ -47,7 +49,7 @@ function searchReleases(releases: Release[], query: string): SearchResult[] {
       });
     }
 
-    for (const feature of release.features) {
+    release.features.forEach((feature, featureIndex) => {
       const titleMatch = feature.title.toLowerCase().includes(lower);
       const featureDescMatch = feature.description.toLowerCase().includes(lower);
 
@@ -56,6 +58,7 @@ function searchReleases(releases: Release[], query: string): SearchResult[] {
           type: "feature",
           releaseId: release.id,
           releaseVersion: release.version,
+          featureIndex,
           title: feature.title,
           subtitle: `v${release.version} — ${release.theme}`,
           matchSnippet: titleMatch
@@ -63,7 +66,7 @@ function searchReleases(releases: Release[], query: string): SearchResult[] {
             : getSnippet(feature.description, lower),
         });
       }
-    }
+    });
   }
 
   return results;
@@ -85,7 +88,7 @@ function getSnippet(text: string, query: string): string {
   return snippet;
 }
 
-export function SearchModal({ releases, open, onClose, onSelectRelease }: SearchModalProps) {
+export function SearchModal({ releases, open, onClose, onSelectRelease, onSelectFeature }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -114,7 +117,12 @@ export function SearchModal({ releases, open, onClose, onSelectRelease }: Search
   }, [open, onClose]);
 
   function handleSelect(result: SearchResult) {
-    onSelectRelease(result.releaseId);
+    if (result.type === "feature" && typeof result.featureIndex === "number") {
+      onSelectFeature(result.releaseId, result.featureIndex);
+    } else {
+      onSelectRelease(result.releaseId);
+    }
+
     onClose();
   }
 

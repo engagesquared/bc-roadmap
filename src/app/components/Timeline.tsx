@@ -27,9 +27,10 @@ interface TimelineProps {
   releases: Release[];
   selectedReleaseId: string | null;
   onReleaseClick: (releaseId: string) => void;
+  onFeatureClick: (releaseId: string, featureIndex: number) => void;
 }
 
-export function Timeline({ releases, selectedReleaseId, onReleaseClick }: TimelineProps) {
+export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatureClick }: TimelineProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedMarkerRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const sortedReleases = [...releases].sort(
@@ -216,6 +217,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick }: Timeli
               timelineY={TIMELINE_Y}
               isSelected={selectedReleaseId === release.id}
               onClick={() => onReleaseClick(release.id)}
+              onFeatureClick={(featureIndex) => onFeatureClick(release.id, featureIndex)}
               ref={(el) => {
                 selectedMarkerRef.current[release.id] = el;
               }}

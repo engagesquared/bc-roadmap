@@ -46,6 +46,7 @@ function getInitialSelection(): string | null {
 
 export default function App() {
   const [selectedReleaseId, setSelectedReleaseId] = useState<string | null>(getInitialSelection);
+  const [selectedFeatureIndex, setSelectedFeatureIndex] = useState<number | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
 
   const selectedRelease = roadmapData.find((release) => release.id === selectedReleaseId) || null;
@@ -66,6 +67,7 @@ export default function App() {
 
   const syncSelectionFromLocation = useCallback(() => {
     setSelectedReleaseId(parseHash(window.location.hash));
+    setSelectedFeatureIndex(null);
   }, []);
 
   useEffect(() => {
@@ -79,12 +81,24 @@ export default function App() {
   }, [syncSelectionFromLocation]);
 
   const handleReleaseClick = (releaseId: string) => {
+    setSelectedFeatureIndex(null);
+    window.location.hash = `#${encodeURIComponent(releaseId)}`;
+  };
+
+  const handleFeatureClick = (releaseId: string, featureIndex: number) => {
+    setSelectedFeatureIndex(featureIndex);
+
+    if (selectedReleaseId === releaseId) {
+      return;
+    }
+
     window.location.hash = `#${encodeURIComponent(releaseId)}`;
   };
 
   const handleCloseRelease = () => {
     window.history.pushState(null, "", `${window.location.pathname}${window.location.search}`);
     setSelectedReleaseId(null);
+    setSelectedFeatureIndex(null);
   };
 
   return (
@@ -107,13 +121,20 @@ export default function App() {
           releases={roadmapData}
           selectedReleaseId={selectedReleaseId}
           onReleaseClick={handleReleaseClick}
+          onFeatureClick={handleFeatureClick}
         />
       </div>
 
       <ReleaseDetailModal
         release={selectedRelease}
+        selectedFeatureIndex={selectedFeatureIndex}
         permalink={permalink}
         shareHref={shareHref}
+        onFeatureSelect={(featureIndex) => {
+          if (!selectedRelease) return;
+          handleFeatureClick(selectedRelease.id, featureIndex);
+        }}
+        onBackToRelease={() => setSelectedFeatureIndex(null)}
         onClose={handleCloseRelease}
       />
 
@@ -122,6 +143,7 @@ export default function App() {
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelectRelease={handleReleaseClick}
+        onSelectFeature={handleFeatureClick}
       />
     </div>
   );
