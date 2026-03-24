@@ -129,9 +129,9 @@ export default function App() {
 
   return (
     <div className="size-full flex flex-col bg-white">
-      <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 flex items-center gap-5">
-        <img src={logo} alt="Brief Connect" className="h-10" />
-        <h1 className="text-lg font-semibold text-[#1A1A1A]">Product Roadmap</h1>
+      <div className="flex-shrink-0 px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center gap-3 sm:gap-5">
+        <img src={logo} alt="Brief Connect" className="h-8 sm:h-10" />
+        <h1 className="text-base sm:text-lg font-semibold text-[#1A1A1A] truncate">Product Roadmap</h1>
         <button
           type="button"
           onClick={() => setSearchOpen(true)}

@@ -2,17 +2,39 @@ import type { Release } from "../data/roadmap";
 import type { ReleaseMarkerPlacement } from "./ReleaseMarker";
 import { ReleaseMarker } from "./ReleaseMarker";
 import { useEffect, useRef } from "react";
+import { useIsMobile } from "./ui/use-mobile";
 
-const TIMELINE_Y = 330;
-const START_PADDING = 160;
-const END_PADDING = 260;
-const TIMELINE_LENGTH = 2200;
-const TIMELINE_LINE_INSET = 40;
-const SCROLL_CONTENT_WIDTH = START_PADDING + TIMELINE_LENGTH + END_PADDING;
-const TIMELINE_LINE_LEFT = START_PADDING - TIMELINE_LINE_INSET;
-const TIMELINE_LINE_WIDTH = TIMELINE_LENGTH + TIMELINE_LINE_INSET * 2;
-const OVERLAP_THRESHOLD = 290;
 const TODAY_LABEL_HEIGHT = 20;
+
+interface TimelineGeometry {
+  timelineY: number;
+  startPadding: number;
+  endPadding: number;
+  timelineLength: number;
+  lineInset: number;
+  overlapThreshold: number;
+  canvasHeight: number;
+}
+
+const DESKTOP_GEOMETRY: TimelineGeometry = {
+  timelineY: 330,
+  startPadding: 160,
+  endPadding: 260,
+  timelineLength: 2200,
+  lineInset: 40,
+  overlapThreshold: 290,
+  canvasHeight: 720,
+};
+
+const MOBILE_GEOMETRY: TimelineGeometry = {
+  timelineY: 160,
+  startPadding: 80,
+  endPadding: 120,
+  timelineLength: 1400,
+  lineInset: 20,
+  overlapThreshold: 200,
+  canvasHeight: 460,
+};
 
 function getStartOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -36,7 +58,13 @@ interface TimelineProps {
 function computePlacements(
   sortedReleases: Release[],
   getPosition: (date: Date) => number,
+  overlapThreshold: number,
+  forceBelow: boolean,
 ): ReleaseMarkerPlacement[] {
+  if (forceBelow) {
+    return sortedReleases.map(() => "below");
+  }
+
   const placements: ReleaseMarkerPlacement[] = [];
   let lastBelowPos = -Infinity;
   let lastAbovePos = -Infinity;
@@ -44,10 +72,10 @@ function computePlacements(
   for (let i = 0; i < sortedReleases.length; i++) {
     const pos = getPosition(sortedReleases[i].estimatedDate);
 
-    if (pos - lastBelowPos >= OVERLAP_THRESHOLD) {
+    if (pos - lastBelowPos >= overlapThreshold) {
       placements.push("below");
       lastBelowPos = pos;
-    } else if (pos - lastAbovePos >= OVERLAP_THRESHOLD) {
+    } else if (pos - lastAbovePos >= overlapThreshold) {
       placements.push("above");
       lastAbovePos = pos;
     } else {
@@ -62,6 +90,13 @@ function computePlacements(
 export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatureClick }: TimelineProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const selectedMarkerRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const isMobile = useIsMobile();
+  const geo = isMobile ? MOBILE_GEOMETRY : DESKTOP_GEOMETRY;
+
+  const scrollContentWidth = geo.startPadding + geo.timelineLength + geo.endPadding;
+  const timelineLineLeft = geo.startPadding - geo.lineInset;
+  const timelineLineWidth = geo.timelineLength + geo.lineInset * 2;
+
   const sortedReleases = [...releases].sort(
     (left, right) => left.estimatedDate.getTime() - right.estimatedDate.getTime(),
   );
@@ -75,10 +110,10 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
     const timeFromStart = date.getTime() - timelineStartDate.getTime();
     const percentageAlong = timeRange > 0 ? timeFromStart / timeRange : 0;
 
-    return START_PADDING + percentageAlong * TIMELINE_LENGTH;
+    return geo.startPadding + percentageAlong * geo.timelineLength;
   };
 
-  const placements = computePlacements(sortedReleases, getTimelinePosition);
+  const placements = computePlacements(sortedReleases, getTimelinePosition, geo.overlapThreshold, isMobile);
   const today = new Date();
   const todayMarkerPosition = getTimelinePosition(today);
   const showTodayMarker = today >= timelineStartDate && today <= timelineEndDate;
@@ -180,7 +215,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
         <div
           key={`month-${date.getFullYear()}-${date.getMonth()}`}
           className="absolute text-xs text-gray-400"
-          style={{ left: `${position}px`, top: `${TIMELINE_Y + 6}px` }}
+          style={{ left: `${position}px`, top: `${geo.timelineY + 6}px` }}
         >
           <div className="w-px h-2 bg-gray-300 mb-1" />
           {monthName}
@@ -214,8 +249,8 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
       return (
         <div
           key={name}
-          className="absolute text-base font-semibold text-gray-600"
-          style={{ left: `${position}px`, top: `${TIMELINE_Y - 32}px` }}
+          className="absolute text-sm sm:text-base font-semibold text-gray-600"
+          style={{ left: `${position}px`, top: `${geo.timelineY - 32}px` }}
         >
           {name}
         </div>
@@ -225,26 +260,26 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
 
   return (
     <div className="relative w-full h-full">
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
+      <div className="absolute left-0 top-0 bottom-0 w-10 sm:w-20 bg-gradient-to-r from-white to-transparent pointer-events-none z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-10 sm:w-20 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
 
       <div
         ref={scrollContainerRef}
         className="w-full h-full overflow-x-auto flex items-center scroll-smooth cursor-grab"
         style={{ scrollbarWidth: "thin" }}
       >
-        <div className="relative shrink-0" style={{ minWidth: `${SCROLL_CONTENT_WIDTH}px`, height: "720px" }}>
+        <div className="relative shrink-0" style={{ minWidth: `${scrollContentWidth}px`, height: `${geo.canvasHeight}px` }}>
           {generateQuarterMarkers()}
 
           <div
             className="absolute bg-[#2E7FE5] rounded-full shadow-sm"
-            style={{ left: `${TIMELINE_LINE_LEFT}px`, width: `${TIMELINE_LINE_WIDTH}px`, height: "2px", top: `${TIMELINE_Y}px` }}
+            style={{ left: `${timelineLineLeft}px`, width: `${timelineLineWidth}px`, height: "2px", top: `${geo.timelineY}px` }}
           />
 
           {showTodayMarker && (
             <div
               className="absolute flex flex-col items-center pointer-events-none"
-              style={{ left: `${todayMarkerPosition}px`, top: `${TIMELINE_Y - 48 - TODAY_LABEL_HEIGHT}px`, transform: "translateX(-50%)" }}
+              style={{ left: `${todayMarkerPosition}px`, top: `${geo.timelineY - 48 - TODAY_LABEL_HEIGHT}px`, transform: "translateX(-50%)" }}
             >
               <div className="text-[10px] font-medium uppercase tracking-[0.08em] text-gray-400 mb-1">
                 Today
@@ -260,9 +295,10 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
               key={release.id}
               release={release}
               position={getTimelinePosition(release.estimatedDate)}
-              timelineY={TIMELINE_Y}
+              timelineY={geo.timelineY}
               placement={placements[index]}
               isSelected={selectedReleaseId === release.id}
+              compact={isMobile}
               onClick={() => onReleaseClick(release.id)}
               onFeatureClick={(featureIndex) => onFeatureClick(release.id, featureIndex)}
               ref={(el) => {

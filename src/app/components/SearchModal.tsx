@@ -129,7 +129,7 @@ export function SearchModal({ releases, open, onClose, onSelectRelease, onSelect
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] px-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-0 sm:pt-[12vh] sm:px-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -145,13 +145,13 @@ export function SearchModal({ releases, open, onClose, onSelectRelease, onSelect
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -10 }}
             transition={{ type: "spring", duration: 0.35 }}
-            className="relative bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden"
+            className="relative bg-white shadow-2xl w-full h-full sm:h-auto sm:rounded-2xl sm:max-w-xl overflow-hidden flex flex-col"
           >
             {/* Gradient header accent */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#2E7FE5] via-[#1E4FD8] to-[#2E7FE5]" />
 
             {/* Search input */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0">
               <Search className="w-5 h-5 text-[#5E6678] flex-shrink-0" />
               <input
                 ref={inputRef}
@@ -161,7 +161,7 @@ export function SearchModal({ releases, open, onClose, onSelectRelease, onSelect
                 placeholder="Search releases and features..."
                 className="flex-1 text-base text-[#1A1A1A] placeholder-[#5E6678]/60 outline-none bg-transparent"
               />
-              {query && (
+              {query ? (
                 <button
                   type="button"
                   onClick={() => {
@@ -172,11 +172,19 @@ export function SearchModal({ releases, open, onClose, onSelectRelease, onSelect
                 >
                   <X className="w-4 h-4" />
                 </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="sm:hidden text-gray-400 hover:text-[#1A1A1A] transition-colors p-1 hover:bg-gray-100 rounded-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               )}
             </div>
 
             {/* Results */}
-            <div className="max-h-[50vh] overflow-y-auto">
+            <div className="flex-1 min-h-0 overflow-y-auto sm:max-h-[50vh]">
               {query.trim() === "" ? (
                 <div className="px-5 py-8 text-center text-sm text-[#5E6678]">
                   Type to search releases and features
@@ -191,7 +199,7 @@ export function SearchModal({ releases, open, onClose, onSelectRelease, onSelect
                     <button
                       key={`${result.releaseId}-${result.type}-${index}`}
                       type="button"
-                      className="w-full px-5 py-3 flex items-start gap-3 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full px-4 sm:px-5 py-3 flex items-start gap-3 text-left hover:bg-gray-50 transition-colors"
                       onClick={() => handleSelect(result)}
                     >
                       <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${result.type === "release" ? "bg-gradient-to-br from-[#2E7FE5] to-[#1E4FD8]" : "bg-[#2E7FE5]/10"}`}>
@@ -223,7 +231,7 @@ export function SearchModal({ releases, open, onClose, onSelectRelease, onSelect
 
             {/* Footer hint */}
             {results.length > 0 && (
-              <div className="px-5 py-2.5 border-t border-gray-100 text-[11px] text-[#5E6678]">
+              <div className="px-5 py-2.5 border-t border-gray-100 text-[11px] text-[#5E6678] flex-shrink-0">
                 {results.length} {results.length === 1 ? "result" : "results"}
               </div>
             )}

@@ -150,3 +150,35 @@
   margin-bottom: 0.5em;
   line-height: 1.4;
 }
+
+/* Mobile refinements for prose inside modals */
+@media (max-width: 639px) {
+  .prose :where(h1):not(:where([class~="not-prose"] *)) {
+    font-size: 1.75em;
+  }
+
+  .prose :where(h2):not(:where([class~="not-prose"] *)) {
+    font-size: 1.25em;
+    margin-top: 1.5em;
+  }
+
+  .prose :where(h3):not(:where([class~="not-prose"] *)) {
+    font-size: 1.1em;
+  }
+
+  .prose :where(ul, ol):not(:where([class~="not-prose"] *)) {
+    padding-left: 1.25em;
+  }
+
+  .prose-sm :where(h1):not(:where([class~="not-prose"] *)) {
+    font-size: 1.5em;
+  }
+
+  .prose-sm :where(h2):not(:where([class~="not-prose"] *)) {
+    font-size: 1.25em;
+  }
+
+  .prose-sm :where(h3):not(:where([class~="not-prose"] *)) {
+    font-size: 1.1em;
+  }
+}
