@@ -28,6 +28,12 @@ const releaseModules = import.meta.glob('/content/releases/*/release.md', {
   import: 'default',
 }) as Record<string, string>;
 
+const featureModules = import.meta.glob('/content/releases/*/features/*.md', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+}) as Record<string, string>;
+
 function parseScalar(value: string): string {
   const trimmedValue = value.trim();
 
@@ -60,56 +66,6 @@ function parseFrontmatter(source: string, filePath: string): MarkdownModule {
     const key = line.slice(0, separatorIndex).trim();
     const rawValue = line.slice(separatorIndex + 1).trim();
 
-    if (key === 'features') {
-      const features: Feature[] = [];
-
-      while (index + 1 < lines.length && /^  - /.test(lines[index + 1])) {
-        index += 1;
-        const featureLine = lines[index].trim();
-        const featureSeparatorIndex = featureLine.indexOf(':');
-
-        if (!featureLine.startsWith('- ') || featureSeparatorIndex === -1) {
-          throw new Error(`Invalid feature line in ${filePath}: ${lines[index]}`);
-        }
-
-        const feature: Partial<Feature> = {};
-        const featureKey = featureLine.slice(2, featureSeparatorIndex).trim();
-        const featureValue = featureLine.slice(featureSeparatorIndex + 1).trim();
-
-        if (featureKey !== 'title') {
-          throw new Error(`Expected feature title in ${filePath}: ${lines[index]}`);
-        }
-
-        feature.title = parseScalar(featureValue);
-
-        while (index + 1 < lines.length && /^    /.test(lines[index + 1])) {
-          index += 1;
-          const nestedLine = lines[index].trim();
-          const nestedSeparatorIndex = nestedLine.indexOf(':');
-
-          if (nestedSeparatorIndex === -1) {
-            throw new Error(`Invalid feature attribute in ${filePath}: ${lines[index]}`);
-          }
-
-          const nestedKey = nestedLine.slice(0, nestedSeparatorIndex).trim();
-          const nestedValue = nestedLine.slice(nestedSeparatorIndex + 1).trim();
-
-          if (nestedKey === 'description') {
-            feature.description = parseScalar(nestedValue);
-          }
-        }
-
-        if (!feature.title || !feature.description) {
-          throw new Error(`Expected feature title and description in ${filePath}`);
-        }
-
-        features.push(feature as Feature);
-      }
-
-      attributes.features = features;
-      continue;
-    }
-
     attributes[key] = parseScalar(rawValue);
   }
 
@@ -124,6 +80,16 @@ function getReleaseVersionFromPath(path: string): string {
 
   if (!match) {
     throw new Error(`Invalid release markdown path: ${path}`);
+  }
+
+  return match[1];
+}
+
+function getFeatureReleaseVersionFromPath(path: string): string {
+  const match = path.match(/^\/content\/releases\/([^/]+)\/features\/[^/]+\.md$/);
+
+  if (!match) {
+    throw new Error(`Invalid feature markdown path: ${path}`);
   }
 
   return match[1];
@@ -183,21 +149,25 @@ function getBooleanAttribute(
   return typeof value === 'string' && value.trim().toLowerCase() === 'true';
 }
 
-function getFeaturesAttribute(
-  attributes: Record<string, unknown>,
-  filePath: string,
-): Feature[] {
-  const value = attributes.features;
+// Group feature files by release version
+const featuresByRelease = new Map<string, Feature[]>();
 
-  if (value === undefined) {
-    return [];
+for (const [path, source] of Object.entries(featureModules).sort(([a], [b]) => a.localeCompare(b))) {
+  const version = getFeatureReleaseVersionFromPath(path);
+  const module = parseFrontmatter(source, path);
+
+  const feature: Feature = {
+    title: getStringAttribute(module.attributes, 'title', path),
+    description: module.body,
+  };
+
+  const existing = featuresByRelease.get(version);
+
+  if (existing) {
+    existing.push(feature);
+  } else {
+    featuresByRelease.set(version, [feature]);
   }
-
-  if (!Array.isArray(value)) {
-    throw new Error(`Expected 'features' list in ${filePath}`);
-  }
-
-  return value as Feature[];
 }
 
 export const roadmapData: Release[] = Object.entries(releaseModules)
@@ -217,7 +187,7 @@ export const roadmapData: Release[] = Object.entries(releaseModules)
       consultationPeriod: getOptionalStringAttribute(module.attributes, 'consultationPeriod'),
       released: getBooleanAttribute(module.attributes, 'released'),
       releaseNotesUrl: getOptionalStringAttribute(module.attributes, 'releaseNotesUrl'),
-      features: getFeaturesAttribute(module.attributes, path),
+      features: featuresByRelease.get(version) ?? [],
     };
   })
   .sort((left, right) => left.estimatedDate.getTime() - right.estimatedDate.getTime());

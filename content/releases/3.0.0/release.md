@@ -5,11 +5,6 @@ date: 2026-11-16
 anticipatedRelease: "November 2026"
 consultationPeriod: "September 2026"
 summary: "A major rethink of the platform's user experience and design language, with AI-native interaction in view."
-features:
-  - title: "Human-centred UX redesign"
-    description: "Rethink the platform's visual identity and interaction model through a user-led design process focused on real workflows, pain points, and day-one usability."
-  - title: "AI-native product experience"
-    description: "Explore how modern AI and agentic systems can be woven into the Brief Connect experience to enhance productivity and deliver tangible efficiency gains."
 ---
 
 **Brief Connect 3.0 will be a major rethink of the platform's user experience and design language.**

@@ -5,11 +5,6 @@ date: 2026-08-24
 anticipatedRelease: "August 2026"
 consultationPeriod: "July 2026"
 summary: "Expands Brief Connect into official meetings administration and digital document signing."
-features:
-  - title: "Official meetings management"
-    description: "Support the management of official meetings from committee level through to Cabinet, including linked records and documents, agenda construction, and digital access to board papers for executives."
-  - title: "Document e-signatures"
-    description: "Integrate e-signing for documents so teams can replace the print-sign-scan-upload process with a fully digital sign-off flow inside Brief Connect."
 ---
 
 **Brief Connect 2.8 will expand the platform beyond briefing into the coordination and administration of official meetings.**
