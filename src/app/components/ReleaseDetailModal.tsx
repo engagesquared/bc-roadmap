@@ -134,7 +134,7 @@ export function ReleaseDetailModal({
                 <ModalShareActions
                   permalink={permalink}
                   shareHref={shareHref}
-                  itemLabel={`release v${release.version}`}
+                  itemLabel={selectedFeature ? `feature ${selectedFeature.title}` : `release v${release.version}`}
                 />
               )}
               <button

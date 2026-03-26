@@ -19,6 +19,48 @@ interface HashSelection {
   featureIndex: number | null;
 }
 
+function slugifyFeatureTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getFeatureSlug(releaseId: string, featureIndex: number): string | null {
+  const release = roadmapData.find((entry) => entry.id === releaseId);
+  const feature = release?.features[featureIndex];
+
+  if (!release || !feature) {
+    return null;
+  }
+
+  const baseSlug = slugifyFeatureTitle(feature.title);
+  let duplicateCount = 0;
+
+  for (let index = 0; index <= featureIndex; index += 1) {
+    const candidate = release.features[index];
+
+    if (slugifyFeatureTitle(candidate.title) === baseSlug) {
+      duplicateCount += 1;
+    }
+  }
+
+  return duplicateCount > 1 ? `${baseSlug}-${duplicateCount}` : baseSlug;
+}
+
+function getFeatureIndexFromSegment(releaseId: string, featureSegment: string): number | null {
+  const release = roadmapData.find((entry) => entry.id === releaseId);
+
+  if (!release) {
+    return null;
+  }
+
+  const matchingIndex = release.features.findIndex((_, index) => getFeatureSlug(releaseId, index) === featureSegment);
+
+  return matchingIndex >= 0 ? matchingIndex : null;
+}
+
 function stripMarkdown(value: string): string {
   return value
     .replace(/\[(.*?)\]\((.*?)\)/g, "$1 ($2)")
@@ -57,9 +99,9 @@ function parseHash(hash: string): HashSelection | null {
     return { releaseId, featureIndex: null };
   }
 
-  const featureIndex = Number.parseInt(decodeURIComponent(featureSegment), 10);
+  const featureIndex = getFeatureIndexFromSegment(releaseId, decodeURIComponent(featureSegment));
 
-  if (!Number.isInteger(featureIndex) || featureIndex < 0 || featureIndex >= release.features.length) {
+  if (featureIndex === null) {
     return { releaseId, featureIndex: null };
   }
 
@@ -80,16 +122,26 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const selectedRelease = roadmapData.find((release) => release.id === selectedReleaseId) || null;
+  const selectedFeature = selectedRelease && selectedFeatureIndex !== null
+    ? selectedRelease.features[selectedFeatureIndex] ?? null
+    : null;
+  const selectedFeatureSlug = selectedReleaseId && selectedFeatureIndex !== null
+    ? getFeatureSlug(selectedReleaseId, selectedFeatureIndex)
+    : null;
   const permalink = selectedReleaseId && typeof window !== "undefined"
-    ? `${window.location.origin}${window.location.pathname}${window.location.search}#${encodeURIComponent(selectedReleaseId)}`
+    ? `${window.location.origin}${window.location.pathname}${window.location.search}#${encodeURIComponent(selectedReleaseId)}${selectedFeatureSlug ? `/${encodeURIComponent(selectedFeatureSlug)}` : ""}`
     : null;
   const shareHref = selectedRelease && permalink
-    ? `mailto:?subject=${encodeURIComponent(`Brief Connect roadmap release: v${selectedRelease.version}`)}&body=${encodeURIComponent([
-        `Brief Connect v${selectedRelease.version}`,
+    ? `mailto:?subject=${encodeURIComponent(selectedFeature
+        ? `Brief Connect roadmap feature: ${selectedFeature.title}`
+        : `Brief Connect roadmap release: v${selectedRelease.version}`)}&body=${encodeURIComponent([
+        selectedFeature
+          ? `Brief Connect feature: ${selectedFeature.title}`
+          : `Brief Connect v${selectedRelease.version}`,
         `Theme: ${selectedRelease.theme}`,
         `Date: ${formatReleaseDate(selectedRelease.estimatedDate)}`,
         "",
-        stripMarkdown(selectedRelease.description),
+        stripMarkdown(selectedFeature ? selectedFeature.description : selectedRelease.description),
         "",
         `Permalink: ${permalink}`,
       ].join("\n"))}`
@@ -130,7 +182,22 @@ export default function App() {
 
   const handleFeatureClick = (releaseId: string, featureIndex: number) => {
     setSelectedFeatureIndex(featureIndex);
-    window.location.hash = `#${encodeURIComponent(releaseId)}/${featureIndex}`;
+    const featureSlug = getFeatureSlug(releaseId, featureIndex);
+
+    if (!featureSlug) {
+      return;
+    }
+
+    window.location.hash = `#${encodeURIComponent(releaseId)}/${encodeURIComponent(featureSlug)}`;
+  };
+
+  const handleBackToRelease = () => {
+    if (!selectedRelease) {
+      return;
+    }
+
+    setSelectedFeatureIndex(null);
+    window.location.hash = `#${encodeURIComponent(selectedRelease.id)}`;
   };
 
   const handleCloseRelease = () => {
@@ -184,7 +251,7 @@ export default function App() {
             if (!selectedRelease) return;
             handleFeatureClick(selectedRelease.id, featureIndex);
           }}
-          onBackToRelease={() => setSelectedFeatureIndex(null)}
+          onBackToRelease={handleBackToRelease}
           onClose={handleCloseRelease}
         />
 
