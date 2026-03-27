@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Release } from "../data/roadmap";
 import ReactMarkdown from "react-markdown";
-import { ArrowLeft, CalendarDays, ExternalLink, MessageSquareMore, Rocket, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, MessageSquareMore, Printer, Rocket, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ModalShareActions } from "./ModalShareActions";
 
@@ -138,6 +138,17 @@ export function ReleaseDetailModal({
                 />
               )}
               <button
+                type="button"
+                onClick={() => {
+                  const printUrl = `${window.location.pathname}${window.location.search}${window.location.search ? "&" : "?"}print=${encodeURIComponent(release.id)}`;
+                  window.open(printUrl, "_blank");
+                }}
+                title="Print release as PDF"
+                className="text-gray-400 hover:text-[#1A1A1A] transition-colors p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <Printer className="w-5 h-5" />
+              </button>
+              <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-[#1A1A1A] transition-colors p-2 hover:bg-gray-100 rounded-lg"
               >
@@ -161,7 +172,9 @@ export function ReleaseDetailModal({
                   </div>
                   <div className="text-sm font-medium text-[#5E6678]">Key feature</div>
                 </div>
-                <p className="text-base leading-7 text-[#334155]">{selectedFeature.description}</p>
+                <div className="prose prose-sm max-w-none text-base leading-7 text-[#334155]">
+                  <ReactMarkdown>{selectedFeature.description}</ReactMarkdown>
+                </div>
               </motion.div>
             ) : (
               <>

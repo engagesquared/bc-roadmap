@@ -50,6 +50,8 @@ Do not pretend unsupported tooling exists.
 - `src/app/data/roadmap.ts`
 - `src/styles/theme.css`
 - `src/styles/prose.css`
+- `src/app/components/PrintView.tsx`
+- `src/styles/print.css`
 
 ## Commands
 Run from `/home/isjeremy/code/bc-workspace/bc-roadmap`.
@@ -132,6 +134,10 @@ Do not imply single-test support exists today.
 - `roadmap.ts` is the source of truth for releases and feature PRDs
 - `Timeline.tsx` derives marker positions from `Date` values
 - Modal transitions use `motion/react`
+- `PrintView.tsx` renders a 16:9 slide for a single release, opened via `?print=release-X.Y.Z` query param
+- The print button in `ReleaseDetailModal.tsx` opens the print view in a new tab
+- `print.css` contains `@media print` rules for 16:9 landscape page sizing
+- Feature `.md` files support an optional `summary` frontmatter field; the print view uses `summary` when present, falling back to a truncated description
 
 ## Code Style
 

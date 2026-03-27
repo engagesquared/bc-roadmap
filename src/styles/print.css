@@ -1,0 +1,48 @@
+/* Print styles for the landscape A4 release page view */
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  html, body, #root {
+    height: auto;
+    overflow: visible;
+    background: white;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-view-root {
+    padding: 0;
+    background: white;
+    min-height: 0;
+    display: block;
+  }
+
+  /* Each .print-page maps 1:1 to a physical page */
+  .print-page {
+    width: 100% !important;
+    height: 100vh !important;
+    box-shadow: none !important;
+    break-after: page;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  /* Don't add a page break after the last page */
+  .print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* Prevent feature cards from being split across pages */
+  .print-feature-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

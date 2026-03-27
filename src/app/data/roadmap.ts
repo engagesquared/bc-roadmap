@@ -5,6 +5,7 @@ interface MarkdownModule {
 
 export interface Feature {
   title: string;
+  summary?: string;
   description: string;
 }
 
@@ -158,6 +159,7 @@ for (const [path, source] of Object.entries(featureModules).sort(([a], [b]) => a
 
   const feature: Feature = {
     title: getStringAttribute(module.attributes, 'title', path),
+    summary: getOptionalStringAttribute(module.attributes, 'summary'),
     description: module.body,
   };
 

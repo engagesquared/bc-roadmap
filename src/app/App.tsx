@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Lightbulb, Search } from "lucide-react";
 import { Timeline } from "./components/Timeline";
 import { roadmapData } from "./data/roadmap";
+import { PrintView } from "./components/PrintView";
 import logo from "./assets/brief-connect-logo.svg";
 
 const ReleaseDetailModal = lazy(async () => {
@@ -117,6 +118,14 @@ function getInitialSelection(): HashSelection | null {
 }
 
 export default function App() {
+  // Check for ?print=release-X.Y.Z query param to render print view
+  const printReleaseId = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("print")
+    : null;
+  const printRelease = printReleaseId
+    ? roadmapData.find((release) => release.id === printReleaseId) ?? null
+    : null;
+
   const [selectedReleaseId, setSelectedReleaseId] = useState<string | null>(() => getInitialSelection()?.releaseId ?? null);
   const [selectedFeatureIndex, setSelectedFeatureIndex] = useState<number | null>(() => getInitialSelection()?.featureIndex ?? null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -205,6 +214,10 @@ export default function App() {
     setSelectedReleaseId(null);
     setSelectedFeatureIndex(null);
   };
+
+  if (printRelease) {
+    return <PrintView release={printRelease} />;
+  }
 
   return (
     <div className="size-full flex flex-col bg-white">
