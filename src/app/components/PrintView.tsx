@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { getFeatureSummary } from "../data/roadmap";
 import type { Release, Feature } from "../data/roadmap";
 import logo from "../assets/brief-connect-logo.svg";
 import { CalendarDays, MessageSquareMore } from "lucide-react";
@@ -20,35 +21,6 @@ const RELEASE_SUMMARY_WARN_LENGTH = 200;
  */
 const FEATURES_FIRST_PAGE = 8;
 const FEATURES_PER_PAGE = 12;
-
-/**
- * Returns a short plain-text summary for a feature.
- *
- * Uses the explicit `summary` frontmatter field when available, otherwise
- * falls back to the first sentence of the markdown description body with
- * basic markdown syntax stripped.
- */
-function getFeatureSummary(feature: { summary?: string; description: string }): string {
-  if (feature.summary) {
-    return feature.summary;
-  }
-
-  const plain = feature.description
-    .replace(/^#{1,6}\s+.*$/gm, "")
-    .replace(/!\[.*?\]\(.*?\)/g, "")
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/_(.*?)_/g, "$1")
-    .replace(/`(.*?)`/g, "$1")
-    .replace(/^>\s*/gm, "")
-    .replace(/^[-*]\s+/gm, "")
-    .replace(/\n+/g, " ")
-    .trim();
-
-  const firstSentence = plain.match(/^[^.!?]*[.!?]/);
-
-  return firstSentence ? firstSentence[0].trim() : plain.slice(0, 160);
-}
 
 /**
  * Log warnings for content that may cause the print slide to overflow badly.

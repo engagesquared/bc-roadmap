@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { getFeatureSummary } from "../data/roadmap";
 import type { Release } from "../data/roadmap";
 import ReactMarkdown from "react-markdown";
 import { ArrowLeft, CalendarDays, ExternalLink, MessageSquareMore, Printer, Rocket, X } from "lucide-react";
@@ -215,7 +216,7 @@ export function ReleaseDetailModal({
                                 </span>
                               </div>
                               <p className="text-sm text-[#5E6678] leading-relaxed sm:ml-12">
-                                {feature.description}
+                                {getFeatureSummary(feature)}
                               </p>
                             </div>
                           </div>

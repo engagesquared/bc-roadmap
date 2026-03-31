@@ -23,6 +23,29 @@ export interface Release {
   features: Feature[];
 }
 
+export function getFeatureSummary(feature: Feature): string {
+  if (feature.summary) {
+    return feature.summary;
+  }
+
+  const plain = feature.description
+    .replace(/^#{1,6}\s+.*$/gm, "")
+    .replace(/!\[.*?\]\(.*?\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/_(.*?)_/g, "$1")
+    .replace(/`(.*?)`/g, "$1")
+    .replace(/^>\s*/gm, "")
+    .replace(/^[-*]\s+/gm, "")
+    .replace(/\n+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const firstSentence = plain.match(/^[^.!?]*[.!?]/);
+
+  return firstSentence ? firstSentence[0].trim() : plain.slice(0, 160);
+}
+
 const releaseModules = import.meta.glob('/content/releases/*/release.md', {
   eager: true,
   query: '?raw',

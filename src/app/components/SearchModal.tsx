@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, X, Package, Puzzle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { getFeatureSummary } from "../data/roadmap";
 import type { Release } from "../data/roadmap";
 
 interface SearchResult {
@@ -49,23 +50,24 @@ function searchReleases(releases: Release[], query: string): SearchResult[] {
       });
     }
 
-    release.features.forEach((feature, featureIndex) => {
-      const titleMatch = feature.title.toLowerCase().includes(lower);
-      const featureDescMatch = feature.description.toLowerCase().includes(lower);
+      release.features.forEach((feature, featureIndex) => {
+        const titleMatch = feature.title.toLowerCase().includes(lower);
+        const featureDescMatch = feature.description.toLowerCase().includes(lower);
+        const featureSummary = getFeatureSummary(feature);
 
-      if (titleMatch || featureDescMatch) {
-        results.push({
+        if (titleMatch || featureDescMatch) {
+          results.push({
           type: "feature",
           releaseId: release.id,
           releaseVersion: release.version,
-          featureIndex,
-          title: feature.title,
-          subtitle: `v${release.version} — ${release.theme}`,
-          matchSnippet: titleMatch
-            ? feature.description
-            : getSnippet(feature.description, lower),
-        });
-      }
+            featureIndex,
+            title: feature.title,
+            subtitle: `v${release.version} — ${release.theme}`,
+            matchSnippet: titleMatch
+              ? featureSummary
+              : getSnippet(feature.description, lower),
+          });
+        }
     });
   }
 
