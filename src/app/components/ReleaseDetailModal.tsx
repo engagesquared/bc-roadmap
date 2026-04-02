@@ -56,6 +56,8 @@ export function ReleaseDetailModal({
     day: "numeric",
     year: "numeric",
   });
+  const featureDisclaimer =
+    "Roadmap feature descriptions are indicative only and may change at any time. Final implementation details, scope, and UX may differ from what is shown here.";
 
   return (
     <AnimatePresence>
@@ -228,6 +230,12 @@ export function ReleaseDetailModal({
               </>
             )}
           </div>
+
+          {selectedFeature ? (
+            <div className="border-t border-gray-200 bg-[#F8FAFC] px-4 py-3 text-xs leading-5 text-[#5E6678] sm:px-8 sm:text-sm">
+              {featureDisclaimer}
+            </div>
+          ) : null}
         </motion.div>
       </div>
     </AnimatePresence>

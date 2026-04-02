@@ -43,6 +43,14 @@
   padding-left: 1.625em;
 }
 
+.prose :where(ul):not(:where([class~="not-prose"] *)) {
+  list-style-type: disc;
+}
+
+.prose :where(ol):not(:where([class~="not-prose"] *)) {
+  list-style-type: decimal;
+}
+
 .prose :where(li):not(:where([class~="not-prose"] *)) {
   margin-top: 0.5em;
   margin-bottom: 0.5em;

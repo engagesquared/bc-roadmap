@@ -1,29 +1,44 @@
 ---
 title: "Proxy management"
-summary: "Give administrators and end users direct control over proxy assignments — who can act on behalf of whom, and for how long — without requiring support tickets."
+summary: "Give each organisation a more flexible way to manage proxy arrangements, with configurable controls, admin oversight, and clear notifications."
 ---
 
-Give administrators and end users direct control over proxy assignments — who can act on behalf of whom, and for how long — without requiring developer intervention or support tickets.
-
-> **Note:** The screenshots below are early mockups used to explore the design direction. The final implementation may look different and the feature set may be adjusted based on feedback and technical constraints.
+Proxy management becomes more flexible, so each organisation can choose the level of control that suits its operating model while keeping System Admins informed and able to step in when needed.
 
 ### What's changing
 
-**Self-service proxy requests (Settings page)**
+**Flexible proxy management**
 
-End users can view their current proxy assignments, request new proxy access, update end dates, and remove assignments — all from the Settings page. Requests are submitted for admin review rather than applied immediately, keeping the approval workflow intact.
+Organisations can configure proxy management in one of two ways:
+
+- **User-managed** - users manage proxy arrangements directly from `/settings`
+- **Request-based** - users can view their current arrangements and submit requests for review from `/settings`
 
 ![Self-service proxy management on the Settings page](/images/proxy-self-service-settings.png)
 
+**User-managed mode**
+
+In user-managed organisations, users can look after proxy arrangements themselves from `/settings`, without a request queue. This includes managing arrangements they own as well as removing arrangements where they are acting as the proxy for someone else.
+
+**Request-based mode**
+
+In request-based organisations, users can still see their current arrangements in `/settings`, but new arrangements and changes flow through an approval process. Straightforward cancellations can still be handled directly, helping teams stay responsive without losing control over new or updated access.
+
 **Admin proxy management (Admin Panel)**
 
-Administrators get a dedicated User Proxy Management tab in the Admin Panel with full visibility across all proxy assignments. The view is split into two sub-tabs:
+System Admins can always manage proxy assignments on behalf of any user, regardless of which mode is enabled. Where request-based controls are in place, they also review and action pending requests.
 
 - **Assignments** — search, filter, add, edit, and remove proxy assignments across the organisation
-- **Requests** — review, approve, or reject self-service proxy requests submitted by users, with a pending count badge for quick triage
+- **Requests** — review, approve, or reject pending proxy requests when request-based mode is enabled
 
 ![Admin proxy management in the Admin Panel](/images/proxy-admin-assignments.png)
 
+**Notifications**
+
+Proxy management includes email notifications so both sides stay informed when arrangements are created, updated, or cancelled. System Admins also receive a weekday summary of pending requests when there is work to review.
+
+- Notifications are email-only and cannot be opted out of
+
 ### Why this matters
 
-Today, proxy changes require a support ticket or direct database intervention. This feature closes that gap by giving both sides of the workflow — the person requesting access and the administrator granting it — purpose-built interfaces inside Brief Connect.
+Different organisations need different levels of control. Some want a lightweight self-service model, while others want approvals around changes to delegated access. This update supports both approaches in a single product experience, gives System Admins clear oversight, and improves communication around proxy activity.
