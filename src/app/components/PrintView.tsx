@@ -75,11 +75,6 @@ function paginateFeatures(features: Feature[]): Feature[][] {
 
 /** Top gradient bar + logo — shown on every page */
 function PageHeader({ release, compact }: { release: Release; compact?: boolean }) {
-  const releaseDateLabel = release.estimatedDate.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-
   return (
     <>
       {/* Top gradient accent bar */}
@@ -106,17 +101,14 @@ function PageHeader({ release, compact }: { release: Release; compact?: boolean 
             <div className="px-3.5 py-1 bg-gradient-to-br from-[#2E7FE5] to-[#1E4FD8] text-white rounded-lg font-semibold text-base">
               v{release.version}
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-[#5E6678] rounded-lg text-xs font-medium">
-              <CalendarDays className="w-3.5 h-3.5" />
-              {releaseDateLabel}
-            </div>
             {release.consultationPeriod && (
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#2E7FE5]/10 text-[#1E4FD8] rounded-lg text-xs font-medium">
                 <MessageSquareMore className="w-3.5 h-3.5" />
                 Consultation: {release.consultationPeriod}
               </div>
             )}
-            <div className="px-2.5 py-1 bg-gray-100 text-[#5E6678] rounded-lg text-xs font-medium">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-[#5E6678] rounded-lg text-xs font-medium">
+              <CalendarDays className="w-3.5 h-3.5" />
               Anticipated release: {release.anticipatedRelease}
             </div>
           </div>
