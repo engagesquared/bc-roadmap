@@ -77,7 +77,6 @@ function paginateFeatures(features: Feature[]): Feature[][] {
 function PageHeader({ release, compact }: { release: Release; compact?: boolean }) {
   const releaseDateLabel = release.estimatedDate.toLocaleDateString("en-US", {
     month: "long",
-    day: "numeric",
     year: "numeric",
   });
 

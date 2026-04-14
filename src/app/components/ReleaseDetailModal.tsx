@@ -51,11 +51,6 @@ export function ReleaseDetailModal({
 
   const selectedFeature =
     selectedFeatureIndex !== null ? release.features[selectedFeatureIndex] ?? null : null;
-  const releaseDateLabel = release.estimatedDate.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
   const featureDisclaimer =
     "Roadmap feature descriptions are indicative only and may change at any time. Final implementation details, scope, and UX may differ from what is shown here.";
 
@@ -85,10 +80,6 @@ export function ReleaseDetailModal({
                 <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-gradient-to-br from-[#2E7FE5] to-[#1E4FD8] text-white rounded-lg font-semibold text-base sm:text-lg">
                   v{release.version}
                 </div>
-                <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-[#5E6678] rounded-lg text-xs sm:text-sm font-medium">
-                  <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  {releaseDateLabel}
-                </div>
               </div>
               <h2 className="text-xl sm:text-2xl font-semibold text-[#1A1A1A] mt-2">
                 {selectedFeature ? selectedFeature.title : release.theme}
@@ -116,7 +107,8 @@ export function ReleaseDetailModal({
                     Released
                   </div>
                 )}
-                <div className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-[#5E6678] rounded-lg text-xs sm:text-sm font-medium">
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-[#5E6678] rounded-lg text-xs sm:text-sm font-medium">
+                  <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   {release.released ? "Roadmap slot" : "Anticipated release"}: {release.anticipatedRelease}
                 </div>
                 {release.releaseNotesUrl && (

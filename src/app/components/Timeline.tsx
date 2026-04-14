@@ -72,6 +72,11 @@ function getEndOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
+/** Return the 15th of the given date's month (midpoint for positioning). */
+function getMidMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 15);
+}
+
 function getQuarterLabel(date: Date): string {
   return `Q${Math.floor(date.getMonth() / 3) + 1} ${date.getFullYear()}`;
 }
@@ -98,7 +103,7 @@ function computePlacements(
   let lastAbovePos = -Infinity;
 
   for (let i = 0; i < sortedReleases.length; i++) {
-    const pos = getPosition(sortedReleases[i].estimatedDate);
+    const pos = getPosition(getMidMonth(sortedReleases[i].estimatedDate));
 
     if (pos - lastBelowPos >= overlapThreshold) {
       placements.push("below");
@@ -350,7 +355,7 @@ export function Timeline({ releases, selectedReleaseId, onReleaseClick, onFeatur
             <ReleaseMarker
               key={release.id}
               release={release}
-              position={getTimelinePosition(release.estimatedDate)}
+              position={getTimelinePosition(getMidMonth(release.estimatedDate))}
               timelineY={geo.timelineY}
               placement={placements[index]}
               isSelected={selectedReleaseId === release.id}
