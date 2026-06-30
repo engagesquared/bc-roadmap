@@ -1,16 +1,13 @@
 ---
 version: "2.8.0"
-title: "Meetings management + doc e-signatures"
-date: 2026-08-24
-anticipatedRelease: "August 2026"
-consultationPeriod: "July 2026"
-summary: "Expands Brief Connect into official meetings administration and digital document signing."
+title: "Certified PDF packs"
+date: 2026-11-24
+anticipatedRelease: "November 2026"
+summary: "Makes generated PDF packs and snapshots easier to open while preserving tamper-evident records."
 ---
 
-**Brief Connect 2.8 will expand the platform beyond briefing into the coordination and administration of official meetings.**
+**Brief Connect 2.8 will improve how generated PDF packs and snapshots are shared, opened, and verified.**
 
-We will introduce support for managing official meetings from committee level through to Cabinet. Teams will be able to link records and documents to meetings, construct agendas, and invite executives to digitally explore board papers within Brief Connect.
+We will replace owner-password-only protection on generated PDF packs and snapshots with certified PDFs, so recipients can open them cleanly in supported viewers while still making later edits detectable.
 
-We also plan to integrate e-signing for documents, replacing the current process of printing, signing, scanning, and uploading signed copies.
-
-**What this means for customers:** less manual handling and fewer disconnected tools across the full lifecycle, from drafting advice through to formal sign-off and meeting coordination.
+**What this means for customers:** fewer password prompts and clearer confidence that shared packs remain point-in-time, tamper-evident artefacts.

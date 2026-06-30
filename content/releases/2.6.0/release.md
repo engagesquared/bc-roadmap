@@ -2,6 +2,7 @@
 version: "2.6.0"
 title: "Platform Hardening & Admin Self-Service"
 date: 2026-05-04
+released: true
 anticipatedRelease: "May 2026"
 summary: "Strengthens the platform foundations while giving administrators and support teams more control."
 ---

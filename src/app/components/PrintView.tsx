@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { getFeatureSummary } from "../data/roadmap";
 import type { Release, Feature } from "../data/roadmap";
 import logo from "../assets/brief-connect-logo.svg";
-import { CalendarDays, MessageSquareMore } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 interface PrintViewProps {
   release: Release;
@@ -101,12 +101,6 @@ function PageHeader({ release, compact }: { release: Release; compact?: boolean 
             <div className="px-3.5 py-1 bg-gradient-to-br from-[#2E7FE5] to-[#1E4FD8] text-white rounded-lg font-semibold text-base">
               v{release.version}
             </div>
-            {release.consultationPeriod && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#2E7FE5]/10 text-[#1E4FD8] rounded-lg text-xs font-medium">
-                <MessageSquareMore className="w-3.5 h-3.5" />
-                Consultation: {release.consultationPeriod}
-              </div>
-            )}
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-[#5E6678] rounded-lg text-xs font-medium">
               <CalendarDays className="w-3.5 h-3.5" />
               Anticipated release: {release.anticipatedRelease}

@@ -17,7 +17,6 @@ export interface Release {
   description: string;
   estimatedDate: Date;
   anticipatedRelease: string;
-  consultationPeriod?: string;
   released: boolean;
   releaseNotesUrl?: string;
   features: Feature[];
@@ -209,7 +208,6 @@ export const roadmapData: Release[] = Object.entries(releaseModules)
       description: module.body,
       estimatedDate: getDateAttribute(module.attributes, 'date', path),
       anticipatedRelease: getStringAttribute(module.attributes, 'anticipatedRelease', path),
-      consultationPeriod: getOptionalStringAttribute(module.attributes, 'consultationPeriod'),
       released: getBooleanAttribute(module.attributes, 'released'),
       releaseNotesUrl: getOptionalStringAttribute(module.attributes, 'releaseNotesUrl'),
       features: featuresByRelease.get(version) ?? [],

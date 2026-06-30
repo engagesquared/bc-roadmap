@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { getFeatureSummary } from "../data/roadmap";
 import type { Release } from "../data/roadmap";
 import ReactMarkdown from "react-markdown";
-import { ArrowLeft, CalendarDays, ExternalLink, MessageSquareMore, Printer, Rocket, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, Printer, Rocket, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ModalShareActions } from "./ModalShareActions";
 
@@ -95,12 +95,6 @@ export function ReleaseDetailModal({
                 </button>
               ) : null}
               <div className="flex flex-wrap gap-2 mt-3 sm:mt-4">
-                {release.consultationPeriod && (
-                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-[#2E7FE5]/10 text-[#1E4FD8] rounded-lg text-xs sm:text-sm font-medium">
-                    <MessageSquareMore className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    Consultation: {release.consultationPeriod}
-                  </div>
-                )}
                 {release.released && (
                   <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs sm:text-sm font-medium">
                     <Rocket className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

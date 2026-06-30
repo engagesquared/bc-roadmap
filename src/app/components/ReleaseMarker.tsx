@@ -120,11 +120,6 @@ export const ReleaseMarker = forwardRef<HTMLDivElement, ReleaseMarkerProps>(
                 Released
               </span>
             )}
-            {!compact && release.consultationPeriod && (
-              <span className={`truncate rounded-full px-2 py-0.5 text-[10px] tracking-normal transition-colors duration-300 ${isSelected ? "bg-white/15 text-white/80" : "bg-[#2E7FE5]/8 text-[#1E4FD8]"}`}>
-                Consult: {release.consultationPeriod}
-              </span>
-            )}
           </div>
           <div className={`${compact ? "text-base" : "text-xl"} font-bold mb-1 transition-colors duration-300 ${isSelected ? "text-white" : "text-[#1A1A1A] group-hover:text-[#2E7FE5]"}`}>
             v{release.version}
