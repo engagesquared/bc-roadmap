@@ -1,15 +1,11 @@
 ---
-version: "2.7.0"
-title: "Copilot + AI integration"
-date: 2026-09-29
-anticipatedRelease: "September 2026"
-summary: "Explores how AI can help teams produce higher-quality advice more efficiently on top of Microsoft 365 Copilot."
+version: "2.7"
+title: "SP record metadata sync"
+date: 2026-10-01
+anticipatedRelease: "October 2026"
+summary: "Synchronises SharePoint record metadata alongside a major .NET and Azure Functions upgrade."
 ---
 
-**Brief Connect 2.7 will explore how AI can help teams produce higher-quality advice more efficiently, built on Microsoft 365 Copilot.**
+**Brief Connect 2.7 will synchronise record metadata with SharePoint.**
 
-The ideas below have emerged from executive roundtables, user groups, and ongoing discussions with customers and users from across the sector. They reflect where we're seeing the most interest and opportunity and will be refined further through co-design ahead of development.
-
-**We're looking for customers to help shape this release.** We want to work closely with interested agencies to co-design these features and understand in what ways AI capabilities would be most beneficial in your environment. If your organisation would like to be involved, please get in touch. This is an opportunity to directly influence what gets built and how it works for your teams.
-
-**What this means for customers:** practical AI assistance that respects the integrity of the advisory process, shaped by your feedback, and built on existing Copilot investments rather than introducing new licensing overhead.
+This release will also include a major .NET and Azure Functions upgrade to modernise the platform foundations.
